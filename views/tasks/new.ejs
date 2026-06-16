@@ -1,0 +1,104 @@
+<div class="form-page">
+  <div class="form-page-header">
+    <a href="/projects/<%= project._id %>" class="back-link">← <%= project.name %></a>
+    <h2>New Task</h2>
+  </div>
+
+  <% if (errors && errors.length) { %>
+    <% errors.forEach(e => { %><div class="alert alert--error"><span><%= e %></span></div><% }) %>
+  <% } %>
+
+  <div class="panel">
+    <div class="panel-body">
+      <form method="POST" action="/projects/<%= project._id %>/tasks" class="form-stack">
+
+        <div class="form-group">
+          <label for="title" class="form-label">Title <span class="required">*</span></label>
+          <input type="text" id="title" name="title" class="form-input" required placeholder="What needs to be done?" value="<%= typeof body !== 'undefined' && body.title ? body.title : '' %>" />
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description</label>
+          <textarea id="description" name="description" class="form-textarea" rows="4" placeholder="Details, context, acceptance criteria…"><%= typeof body !== 'undefined' && body.description ? body.description : '' %></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="assigneeId" class="form-label">Assignee</label>
+            <select id="assigneeId" name="assigneeId" class="form-select">
+              <option value="">Unassigned</option>
+              <% assignableUsers.forEach(u => { %>
+                <option value="<%= u._id %>" <%= typeof body !== 'undefined' && body.assigneeId === u._id.toString() ? 'selected' : '' %>><%= u.fullName %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priority" class="form-label">Priority</label>
+            <select id="priority" name="priority" class="form-select">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dueDate" class="form-label">Due Date</label>
+            <input type="date" id="dueDate" name="dueDate" class="form-input" value="<%= typeof body !== 'undefined' && body.dueDate ? body.dueDate : '' %>" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="externalUrl" class="form-label">External URL</label>
+          <input type="url" id="externalUrl" name="externalUrl" class="form-input" placeholder="https://…" value="<%= typeof body !== 'undefined' && body.externalUrl ? body.externalUrl : '' %>" />
+          <span class="form-hint">Must start with http:// or https://</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Checklist Items</label>
+          <div id="checklistContainer" class="checklist-builder">
+            <div class="checklist-item-row">
+              <input type="text" name="checklistItems" class="form-input" placeholder="Checklist item…" />
+              <button type="button" class="btn btn--ghost btn--sm checklist-remove-btn" onclick="removeChecklistRow(this)" aria-label="Remove">×</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn--ghost btn--sm mt-sm" onclick="addChecklistRow()">+ Add item</button>
+        </div>
+
+        <div class="form-group form-flags">
+          <label class="form-checkbox-label">
+            <input type="checkbox" name="isConfidential" value="on" <%= typeof body !== 'undefined' && body.isConfidential === 'on' ? 'checked' : '' %> />
+            Confidential task
+            <span class="form-hint">Hidden from users without task access</span>
+          </label>
+          <label class="form-checkbox-label">
+            <input type="checkbox" name="requiresLeadApproval" value="on" <%= typeof body !== 'undefined' && body.requiresLeadApproval === 'on' ? 'checked' : '' %> />
+            Requires Project Lead sign-off
+            <span class="form-hint">QA approval will not auto-complete this task</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">Create Task</button>
+          <a href="/projects/<%= project._id %>" class="btn btn--ghost">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function addChecklistRow() {
+  const container = document.getElementById('checklistContainer');
+  const row = document.createElement('div');
+  row.className = 'checklist-item-row';
+  row.innerHTML = '<input type="text" name="checklistItems" class="form-input" placeholder="Checklist item…" /><button type="button" class="btn btn--ghost btn--sm checklist-remove-btn" onclick="removeChecklistRow(this)" aria-label="Remove">×</button>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+function removeChecklistRow(btn) {
+  const container = document.getElementById('checklistContainer');
+  if (container.children.length > 1) btn.closest('.checklist-item-row').remove();
+  else btn.closest('.checklist-item-row').querySelector('input').value = '';
+}
+</script>

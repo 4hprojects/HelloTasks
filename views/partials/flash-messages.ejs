@@ -1,0 +1,18 @@
+<% if (flash && flash.success) { %>
+  <div class="alert alert--success" role="alert">
+    <span><%= flash.success %></span>
+    <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+  </div>
+<% } %>
+<% if (flash && flash.error) { %>
+  <div class="alert alert--error" role="alert">
+    <span><%= flash.error %></span>
+    <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+  </div>
+<% } %>
+<% if (flash && flash.info) { %>
+  <div class="alert alert--info" role="alert">
+    <span><%= flash.info %></span>
+    <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+  </div>
+<% } %>

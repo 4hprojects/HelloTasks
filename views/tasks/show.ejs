@@ -1,0 +1,253 @@
+<div class="task-page">
+
+  <div class="task-page-header">
+    <div>
+      <a href="/projects/<%= project._id %>/tasks" class="back-link">← <%= project.name %> / Tasks</a>
+      <div class="task-title-row">
+        <h2 class="task-heading"><%= task.title %></h2>
+        <% if (task.isConfidential) { %><span class="badge badge--warning">Confidential</span><% } %>
+        <% if (task.requiresLeadApproval) { %><span class="badge badge--neutral">Lead sign-off required</span><% } %>
+      </div>
+    </div>
+    <% if (canEdit) { %>
+      <div class="header-actions">
+        <a href="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
+        <% if (['super_admin', 'project_lead'].includes(projectRole)) { %>
+          <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/archive" class="inline-form" onsubmit="return confirm('Archive this task?')">
+            <button type="submit" class="btn btn--ghost btn--sm">Archive</button>
+          </form>
+          <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/delete" class="inline-form" onsubmit="return confirm('Permanently delete this task? This cannot be undone.')">
+            <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+          </form>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="task-layout">
+
+    <!-- Main content -->
+    <div class="task-main">
+
+      <% if (task.description) { %>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">Description</h3></div>
+        <div class="panel-body"><p class="task-description"><%= task.description %></p></div>
+      </div>
+      <% } %>
+
+      <% if (task.checklist && task.checklist.length > 0) { %>
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Checklist (<%= task.checklist.filter(c => c.completed).length %>/<%= task.checklist.length %>)</h3>
+        </div>
+        <div class="panel-body">
+          <ul class="checklist">
+            <% task.checklist.forEach(item => { %>
+              <li class="checklist-item <%= item.completed ? 'completed' : '' %>">
+                <span class="checklist-check"><%= item.completed ? '✓' : '○' %></span>
+                <%= item.item %>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Status update -->
+      <% if (availableTransitions.length > 0) { %>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">Update Status</h3></div>
+        <div class="panel-body">
+          <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/status" class="status-update-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newStatus" class="form-label">Move to</label>
+                <select id="newStatus" name="newStatus" class="form-select">
+                  <% availableTransitions.forEach(s => { %>
+                    <option value="<%= s %>"><%= statusLabels[s] %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="form-group" style="flex:2">
+                <label for="statusNote" class="form-label">Note <span class="text-secondary">(optional)</span></label>
+                <input type="text" id="statusNote" name="note" class="form-input" placeholder="Reason or context…" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn--primary btn--sm">Update Status</button>
+          </form>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- QA Review info -->
+      <% if (task.qaReview && task.qaReview.reviewedBy) { %>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">QA Review</h3></div>
+        <div class="panel-body">
+          <div class="review-block">
+            <span class="badge badge--<%= task.qaReview.decision === 'approved' ? 'success' : 'warning' %>">
+              <%= task.qaReview.decision === 'approved' ? 'Approved' : 'Returned for Refinement' %>
+            </span>
+            <span class="text-secondary text-sm">by <%= task.qaReview.reviewedBy.fullName %> on <%= new Date(task.qaReview.reviewedAt).toLocaleDateString() %></span>
+            <% if (task.qaReview.note) { %><p class="review-note"><%= task.qaReview.note %></p><% } %>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Lead approval info -->
+      <% if (task.leadApproval && task.leadApproval.approvedBy) { %>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">Lead Sign-off</h3></div>
+        <div class="panel-body">
+          <div class="review-block">
+            <span class="badge badge--success">Approved</span>
+            <span class="text-secondary text-sm">by <%= task.leadApproval.approvedBy.fullName %> on <%= new Date(task.leadApproval.approvedAt).toLocaleDateString() %></span>
+            <% if (task.leadApproval.note) { %><p class="review-note"><%= task.leadApproval.note %></p><% } %>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Status history -->
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">History</h3></div>
+        <div class="panel-body no-pad">
+          <ul class="status-history">
+            <% [...task.statusHistory].reverse().forEach(h => { %>
+              <li class="history-item">
+                <span class="history-status"><%= statusLabels[h.status] || h.status %></span>
+                <% if (h.changedBy) { %>
+                  <span class="history-by">by <%= h.changedBy.fullName %></span>
+                <% } %>
+                <span class="history-date"><%= new Date(h.changedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                <% if (h.note) { %><span class="history-note">— <%= h.note %></span><% } %>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="panel" id="files">
+        <div class="panel-header">
+          <h3 class="panel-title">Files (<%= files.length %>)</h3>
+        </div>
+        <% if (files.length > 0) { %>
+          <div class="panel-body no-padding">
+            <ul class="file-list">
+              <% files.forEach(f => { %>
+                <li class="file-item">
+                  <div class="file-icon file-icon--<%= f.mimeType.startsWith('image/') ? 'image' : f.mimeType === 'application/pdf' ? 'pdf' : 'doc' %>">
+                    <%= f.mimeType.startsWith('image/') ? '🖼' : f.mimeType === 'application/pdf' ? '📄' : '📎' %>
+                  </div>
+                  <div class="file-meta">
+                    <a href="<%= f.publicUrl %>" target="_blank" rel="noopener noreferrer" class="file-name"><%= f.originalName %></a>
+                    <span class="file-details"><%= formatSize(f.size) %> · Uploaded by <%= f.uploadedBy.fullName %> · <%= new Date(f.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
+                  </div>
+                  <% const canDeleteFile = f.uploadedBy._id.toString() === user._id.toString() || ['super_admin', 'project_lead'].includes(projectRole); %>
+                  <% if (canDeleteFile) { %>
+                    <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files/<%= f._id %>/delete" class="inline-form" onsubmit="return confirm('Delete this file?')">
+                      <button type="submit" class="btn btn--ghost btn--sm text-danger">Delete</button>
+                    </form>
+                  <% } %>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+        <% } %>
+        <div class="panel-section">
+          <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.md" required />
+            <label for="fileInput" class="file-input-label">Choose file</label>
+            <button type="submit" class="btn btn--primary btn--sm" id="uploadBtn" disabled>Upload</button>
+          </form>
+          <p class="form-hint mt-sm">Images up to 5 MB · Documents up to 10 MB · Converted to WebP automatically</p>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="panel" id="comments">
+        <div class="panel-header">
+          <h3 class="panel-title">Comments (<%= comments.length %>)</h3>
+        </div>
+        <% if (comments.length > 0) { %>
+          <div class="comments-list">
+            <% comments.forEach(c => { %>
+              <div class="comment">
+                <div class="comment-header">
+                  <div class="user-avatar user-avatar--sm"><%= c.author.fullName.charAt(0).toUpperCase() %></div>
+                  <span class="comment-author"><%= c.author.fullName %></span>
+                  <span class="comment-date"><%= new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                  <% const canDeleteComment = c.author._id.toString() === user._id.toString() || ['super_admin', 'project_lead'].includes(projectRole); %>
+                  <% if (canDeleteComment) { %>
+                    <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments/<%= c._id %>/delete" class="inline-form comment-delete-form" onsubmit="return confirm('Delete this comment?')">
+                      <button type="submit" class="btn--comment-delete" aria-label="Delete comment">×</button>
+                    </form>
+                  <% } %>
+                </div>
+                <p class="comment-body"><%= c.content %></p>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="panel-body"><p class="empty-state">No comments yet.</p></div>
+        <% } %>
+        <div class="panel-section">
+          <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments" class="comment-form">
+            <textarea name="content" class="form-textarea comment-textarea" rows="3" placeholder="Add a comment…" required></textarea>
+            <div class="comment-form-actions">
+              <button type="submit" class="btn btn--primary btn--sm">Post Comment</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar meta -->
+    <aside class="task-sidebar">
+
+      <div class="meta-card">
+        <div class="meta-row">
+          <span class="meta-label">Status</span>
+          <span class="badge badge--<%= task.status === 'completed' ? 'success' : task.status === 'blocked' ? 'danger' : task.status === 'in_progress' ? 'primary' : task.status === 'ready_for_review' ? 'info' : 'neutral' %>">
+            <%= statusLabels[task.status] %>
+          </span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Priority</span>
+          <span class="badge badge--<%= task.priority === 'critical' ? 'danger' : task.priority === 'high' ? 'warning' : task.priority === 'medium' ? 'primary' : 'neutral' %>">
+            <%= task.priority.charAt(0).toUpperCase() + task.priority.slice(1) %>
+          </span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Assignee</span>
+          <span class="meta-value"><%= task.assignee ? task.assignee.fullName : 'Unassigned' %></span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Created by</span>
+          <span class="meta-value"><%= task.createdBy ? task.createdBy.fullName : '—' %></span>
+        </div>
+        <% if (task.dueDate) { %>
+        <div class="meta-row">
+          <span class="meta-label">Due Date</span>
+          <span class="meta-value"><%= new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+        </div>
+        <% } %>
+        <div class="meta-row">
+          <span class="meta-label">Created</span>
+          <span class="meta-value"><%= new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+        </div>
+        <% if (task.externalUrl) { %>
+        <div class="meta-row">
+          <span class="meta-label">External URL</span>
+          <a href="<%= task.externalUrl %>" target="_blank" rel="noopener noreferrer" class="meta-link">Open link ↗</a>
+        </div>
+        <% } %>
+      </div>
+
+    </aside>
+  </div>
+</div>

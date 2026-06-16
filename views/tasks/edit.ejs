@@ -1,0 +1,110 @@
+<div class="form-page">
+  <div class="form-page-header">
+    <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="back-link">← <%= task.title %></a>
+    <h2>Edit Task</h2>
+  </div>
+
+  <% if (errors && errors.length) { %>
+    <% errors.forEach(e => { %><div class="alert alert--error"><span><%= e %></span></div><% }) %>
+  <% } %>
+
+  <div class="panel">
+    <div class="panel-body">
+      <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="form-stack">
+
+        <div class="form-group">
+          <label for="title" class="form-label">Title <span class="required">*</span></label>
+          <input type="text" id="title" name="title" class="form-input" required value="<%= task.title %>" />
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description</label>
+          <textarea id="description" name="description" class="form-textarea" rows="4"><%= task.description %></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="assigneeId" class="form-label">Assignee</label>
+            <select id="assigneeId" name="assigneeId" class="form-select">
+              <option value="">Unassigned</option>
+              <% assignableUsers.forEach(u => { %>
+                <option value="<%= u._id %>" <%= task.assignee && task.assignee._id && task.assignee._id.toString() === u._id.toString() ? 'selected' : '' %>><%= u.fullName %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priority" class="form-label">Priority</label>
+            <select id="priority" name="priority" class="form-select">
+              <option value="low" <%= task.priority === 'low' ? 'selected' : '' %>>Low</option>
+              <option value="medium" <%= task.priority === 'medium' ? 'selected' : '' %>>Medium</option>
+              <option value="high" <%= task.priority === 'high' ? 'selected' : '' %>>High</option>
+              <option value="critical" <%= task.priority === 'critical' ? 'selected' : '' %>>Critical</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dueDate" class="form-label">Due Date</label>
+            <input type="date" id="dueDate" name="dueDate" class="form-input" value="<%= task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '' %>" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="externalUrl" class="form-label">External URL</label>
+          <input type="url" id="externalUrl" name="externalUrl" class="form-input" placeholder="https://…" value="<%= task.externalUrl || '' %>" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Checklist Items</label>
+          <div id="checklistContainer" class="checklist-builder">
+            <% if (task.checklist && task.checklist.length > 0) { %>
+              <% task.checklist.forEach(c => { %>
+                <div class="checklist-item-row">
+                  <input type="text" name="checklistItems" class="form-input" value="<%= c.item %>" />
+                  <button type="button" class="btn btn--ghost btn--sm checklist-remove-btn" onclick="removeChecklistRow(this)" aria-label="Remove">×</button>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div class="checklist-item-row">
+                <input type="text" name="checklistItems" class="form-input" placeholder="Checklist item…" />
+                <button type="button" class="btn btn--ghost btn--sm checklist-remove-btn" onclick="removeChecklistRow(this)" aria-label="Remove">×</button>
+              </div>
+            <% } %>
+          </div>
+          <button type="button" class="btn btn--ghost btn--sm mt-sm" onclick="addChecklistRow()">+ Add item</button>
+        </div>
+
+        <div class="form-group form-flags">
+          <label class="form-checkbox-label">
+            <input type="checkbox" name="isConfidential" value="on" <%= task.isConfidential ? 'checked' : '' %> />
+            Confidential task
+          </label>
+          <label class="form-checkbox-label">
+            <input type="checkbox" name="requiresLeadApproval" value="on" <%= task.requiresLeadApproval ? 'checked' : '' %> />
+            Requires Project Lead sign-off
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">Save Changes</button>
+          <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="btn btn--ghost">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function addChecklistRow() {
+  const container = document.getElementById('checklistContainer');
+  const row = document.createElement('div');
+  row.className = 'checklist-item-row';
+  row.innerHTML = '<input type="text" name="checklistItems" class="form-input" placeholder="Checklist item…" /><button type="button" class="btn btn--ghost btn--sm checklist-remove-btn" onclick="removeChecklistRow(this)" aria-label="Remove">×</button>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+}
+function removeChecklistRow(btn) {
+  const container = document.getElementById('checklistContainer');
+  if (container.children.length > 1) btn.closest('.checklist-item-row').remove();
+  else btn.closest('.checklist-item-row').querySelector('input').value = '';
+}
+</script>

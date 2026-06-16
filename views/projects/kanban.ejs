@@ -1,0 +1,58 @@
+<div class="kanban-page-header">
+  <div>
+    <a href="/projects/<%= project._id %>" class="back-link">← <%= project.name %></a>
+    <h2 class="page-subtitle">Kanban Board</h2>
+  </div>
+  <div class="header-actions">
+    <a href="/projects/<%= project._id %>/tasks" class="btn btn--ghost btn--sm">List View</a>
+    <a href="/projects/<%= project._id %>/tasks/new" class="btn btn--primary btn--sm">+ New Task</a>
+  </div>
+</div>
+
+<div class="kanban-board">
+  <% columns.forEach(col => { %>
+    <div class="kanban-col">
+      <div class="kanban-col-header">
+        <span class="kanban-col-title"><%= col.label %></span>
+        <span class="kanban-col-count"><%= col.tasks.length %></span>
+      </div>
+      <div class="kanban-col-body">
+        <% if (col.tasks.length === 0) { %>
+          <div class="kanban-empty">No tasks</div>
+        <% } %>
+        <% col.tasks.forEach(task => { %>
+          <% if (!task.visible) { %>
+            <div class="kanban-card kanban-card--locked">
+              <span class="kanban-lock-icon">🔒</span>
+              <span class="kanban-locked-label">Confidential</span>
+            </div>
+          <% } else { %>
+            <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="kanban-card" data-priority="<%= task.priority %>">
+              <div class="kanban-card-priority kanban-priority--<%= task.priority %>"></div>
+              <div class="kanban-card-body">
+                <p class="kanban-card-title"><%= task.title %></p>
+                <% if (task.isConfidential) { %>
+                  <span class="badge badge--warning badge--xs">confidential</span>
+                <% } %>
+              </div>
+              <div class="kanban-card-footer">
+                <% if (task.assignee) { %>
+                  <div class="kanban-assignee" title="<%= task.assignee.fullName %>">
+                    <%= task.assignee.fullName.charAt(0).toUpperCase() %>
+                  </div>
+                <% } else { %>
+                  <div class="kanban-assignee kanban-assignee--empty" title="Unassigned">?</div>
+                <% } %>
+                <% if (task.dueDate) { %>
+                  <span class="kanban-due <%= new Date(task.dueDate) < new Date() ? 'kanban-due--overdue' : '' %>">
+                    <%= new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                  </span>
+                <% } %>
+              </div>
+            </a>
+          <% } %>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+</div>

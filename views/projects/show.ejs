@@ -1,0 +1,116 @@
+<div class="page-header">
+  <div>
+    <a href="/projects" class="back-link">← Projects</a>
+    <div class="project-title-row">
+      <h2 class="project-heading"><%= project.name %></h2>
+      <span class="badge badge--<%= project.status === 'active' ? 'success' : project.status === 'on_hold' ? 'warning' : project.status === 'completed' ? 'primary' : 'neutral' %>">
+        <%= project.status.replace('_', ' ') %>
+      </span>
+    </div>
+    <% if (project.description) { %>
+      <p class="project-desc-hero"><%= project.description %></p>
+    <% } %>
+  </div>
+  <% if (canManage) { %>
+    <div class="header-actions">
+      <a href="/projects/<%= project._id %>/edit" class="btn btn--outline btn--sm">Edit Project</a>
+      <form method="POST" action="/projects/<%= project._id %>/delete" onsubmit="return confirm('Delete this project? This cannot be undone.')">
+        <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+      </form>
+    </div>
+  <% } %>
+</div>
+
+<div class="project-panels">
+
+  <!-- Members -->
+  <div class="panel">
+    <div class="panel-header">
+      <h3 class="panel-title">Members (<%= project.members.length %>)</h3>
+    </div>
+    <div class="panel-body no-padding">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <% if (canManage) { %><th></th><% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% project.members.forEach(m => { %>
+            <tr>
+              <td>
+                <div class="member-name-cell">
+                  <div class="user-avatar user-avatar--sm"><%= m.user.fullName.charAt(0).toUpperCase() %></div>
+                  <%= m.user.fullName %>
+                  <% if (m.user._id.toString() === user._id.toString()) { %>
+                    <span class="self-tag">you</span>
+                  <% } %>
+                </div>
+              </td>
+              <td class="text-secondary"><%= m.user.email %></td>
+              <td>
+                <span class="badge badge--<%= m.role === 'project_lead' ? 'primary' : m.role === 'quality_manager' ? 'info' : m.role === 'developer' ? 'success' : 'neutral' %>">
+                  <%= m.role.replace(/_/g, ' ') %>
+                </span>
+              </td>
+              <% if (canManage) { %>
+                <td>
+                  <% const isOnlyLead = m.role === 'project_lead' && project.members.filter(x => x.role === 'project_lead').length === 1; %>
+                  <% if (!isOnlyLead) { %>
+                    <form method="POST" action="/projects/<%= project._id %>/members/remove" class="inline-form">
+                      <input type="hidden" name="userId" value="<%= m.user._id %>" />
+                      <button type="submit" class="btn btn--sm btn--ghost text-danger" onclick="return confirm('Remove this member?')">Remove</button>
+                    </form>
+                  <% } %>
+                </td>
+              <% } %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (canManage && allUsers.length > 0) { %>
+      <div class="panel-section">
+        <h4 class="panel-section-title">Add Member</h4>
+        <form method="POST" action="/projects/<%= project._id %>/members" class="add-member-form">
+          <select name="userId" class="form-select" required>
+            <option value="">Select a user…</option>
+            <% allUsers.forEach(u => { %>
+              <option value="<%= u._id %>"><%= u.fullName %> (<%= u.email %>)</option>
+            <% }) %>
+          </select>
+          <select name="role" class="form-select">
+            <option value="developer">Developer</option>
+            <option value="quality_manager">Quality Manager</option>
+            <option value="project_lead">Project Lead</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <button type="submit" class="btn btn--primary btn--sm">Add</button>
+        </form>
+      </div>
+    <% } else if (canManage && allUsers.length === 0) { %>
+      <div class="panel-section">
+        <p class="text-secondary text-sm">All active users are already members of this project.</p>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Tasks quick-links -->
+  <div class="panel">
+    <div class="panel-header">
+      <h3 class="panel-title">Tasks</h3>
+      <div style="display:flex;gap:.5rem">
+        <a href="/projects/<%= project._id %>/tasks" class="btn btn--sm btn--outline">List</a>
+        <a href="/projects/<%= project._id %>/kanban" class="btn btn--sm btn--primary">Kanban Board</a>
+      </div>
+    </div>
+    <div class="panel-body">
+      <p class="empty-state">Open the task list or Kanban board to manage tasks.</p>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,36 @@
+<div class="page-header">
+  <h1 class="page-title">Notifications</h1>
+  <% if (notifications.some(n => !n.isRead)) { %>
+    <form action="/notifications/read-all" method="POST">
+      <button type="submit" class="btn btn--sm btn--outline">Mark All Read</button>
+    </form>
+  <% } %>
+</div>
+
+<% if (notifications.length === 0) { %>
+  <div class="empty-state-block">
+    <p>No notifications yet.</p>
+  </div>
+<% } else { %>
+  <div class="notif-list">
+    <% notifications.forEach(n => { %>
+      <div class="notif-item <%= n.isRead ? 'notif-item--read' : 'notif-item--unread' %>">
+        <div class="notif-item-body">
+          <div class="notif-type-label"><%= typeLabels[n.type] || n.type %></div>
+          <div class="notif-message"><%= n.message %></div>
+          <div class="notif-time"><%= new Date(n.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) %></div>
+        </div>
+        <div class="notif-item-actions">
+          <% if (n.link) { %>
+            <a href="<%= n.link %>" class="btn btn--sm btn--outline">View</a>
+          <% } %>
+          <% if (!n.isRead) { %>
+            <form action="/notifications/<%= n._id %>/read" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn--sm btn--ghost">Mark Read</button>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>

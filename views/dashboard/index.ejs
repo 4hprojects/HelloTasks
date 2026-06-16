@@ -1,0 +1,89 @@
+<div class="dashboard">
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Projects</div>
+      <div class="stat-value"><%= stats.totalProjects %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">My Tasks</div>
+      <div class="stat-value"><a href="/tasks" class="stat-link"><%= stats.myTasks %></a></div>
+    </div>
+    <div class="stat-card stat-card--warning">
+      <div class="stat-label">Due Within 7 Days</div>
+      <div class="stat-value"><%= stats.dueSoon %></div>
+    </div>
+    <div class="stat-card stat-card--info">
+      <div class="stat-label">Ready for Review</div>
+      <div class="stat-value"><%= stats.readyForReview %></div>
+    </div>
+    <div class="stat-card stat-card--danger">
+      <div class="stat-label">Blocked</div>
+      <div class="stat-value"><%= stats.blocked %></div>
+    </div>
+    <div class="stat-card stat-card--success">
+      <div class="stat-label">Completed (30d)</div>
+      <div class="stat-value"><%= stats.completedRecently %></div>
+    </div>
+  </div>
+
+  <div class="dashboard-panels">
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">My Assigned Tasks</h2>
+        <a href="/projects" class="btn btn--sm btn--outline">All Projects</a>
+      </div>
+      <% if (recentTasks.length === 0) { %>
+        <div class="panel-body"><p class="empty-state">No tasks assigned to you.</p></div>
+      <% } else { %>
+        <div class="panel-body no-padding">
+          <table class="data-table">
+            <thead>
+              <tr><th>Task</th><th>Project</th><th>Status</th><th>Due</th></tr>
+            </thead>
+            <tbody>
+              <% recentTasks.forEach(t => { %>
+                <tr>
+                  <td><a href="/projects/<%= t.project._id %>/tasks/<%= t._id %>" class="task-link"><%= t.title %></a></td>
+                  <td class="text-secondary"><%= t.project.name %></td>
+                  <td>
+                    <span class="badge badge--<%= t.status === 'completed' ? 'success' : t.status === 'blocked' ? 'danger' : t.status === 'in_progress' ? 'primary' : t.status === 'ready_for_review' ? 'info' : 'neutral' %>">
+                      <%= statusLabels[t.status] || t.status %>
+                    </span>
+                  </td>
+                  <td class="text-secondary"><%= t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Quick Links</h2>
+      </div>
+      <div class="panel-body">
+        <div class="quick-links">
+          <a href="/projects" class="quick-link-item">
+            <span class="quick-link-icon">📁</span>
+            <span>Projects</span>
+          </a>
+          <a href="/notifications" class="quick-link-item">
+            <span class="quick-link-icon">🔔</span>
+            <span>Notifications <% if (unreadCount > 0) { %>(<%= unreadCount %>)<% } %></span>
+          </a>
+          <% if (user.globalRole === 'super_admin') { %>
+          <a href="/users" class="quick-link-item">
+            <span class="quick-link-icon">👥</span>
+            <span>User Management</span>
+          </a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

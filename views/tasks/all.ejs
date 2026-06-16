@@ -1,0 +1,93 @@
+<div class="page-header">
+  <h1 class="page-title">Tasks</h1>
+</div>
+
+<form method="GET" action="/tasks" class="filter-bar">
+  <input type="text" name="search" class="form-input filter-search" placeholder="Search tasks…" value="<%= filters.search %>" />
+  <select name="status" class="form-select filter-select">
+    <option value="">All statuses</option>
+    <% Object.entries(statusLabels).filter(([k]) => k !== 'archived').forEach(([k, v]) => { %>
+      <option value="<%= k %>" <%= filters.status === k ? 'selected' : '' %>><%= v %></option>
+    <% }) %>
+  </select>
+  <select name="priority" class="form-select filter-select">
+    <option value="">All priorities</option>
+    <option value="critical" <%= filters.priority === 'critical' ? 'selected' : '' %>>Critical</option>
+    <option value="high" <%= filters.priority === 'high' ? 'selected' : '' %>>High</option>
+    <option value="medium" <%= filters.priority === 'medium' ? 'selected' : '' %>>Medium</option>
+    <option value="low" <%= filters.priority === 'low' ? 'selected' : '' %>>Low</option>
+  </select>
+  <select name="projectId" class="form-select filter-select">
+    <option value="">All projects</option>
+    <% accessibleProjects.forEach(p => { %>
+      <option value="<%= p._id %>" <%= filters.projectId === p._id.toString() ? 'selected' : '' %>><%= p.name %></option>
+    <% }) %>
+  </select>
+  <select name="assigneeId" class="form-select filter-select">
+    <option value="">All assignees</option>
+    <option value="mine" <%= filters.assigneeId === 'mine' ? 'selected' : '' %>>Assigned to me</option>
+    <option value="unassigned" <%= filters.assigneeId === 'unassigned' ? 'selected' : '' %>>Unassigned</option>
+  </select>
+  <select name="sort" class="form-select filter-select">
+    <option value="newest" <%= !filters.sort || filters.sort === 'newest' ? 'selected' : '' %>>Last updated</option>
+    <option value="due_asc" <%= filters.sort === 'due_asc' ? 'selected' : '' %>>Due date</option>
+    <option value="priority" <%= filters.sort === 'priority' ? 'selected' : '' %>>Priority</option>
+    <option value="status" <%= filters.sort === 'status' ? 'selected' : '' %>>Status</option>
+  </select>
+  <button type="submit" class="btn btn--outline btn--sm">Filter</button>
+  <a href="/tasks" class="btn btn--ghost btn--sm">Clear</a>
+</form>
+
+<% if (tasks.length === 0) { %>
+  <div class="panel">
+    <div class="panel-body">
+      <p class="empty-state">No tasks found<% if (Object.values(filters).some(v => v)) { %> matching your filters<% } %>.</p>
+    </div>
+  </div>
+<% } else { %>
+  <div class="results-count"><%= tasks.length %> task<%= tasks.length !== 1 ? 's' : '' %></div>
+  <div class="panel">
+    <div class="panel-body no-padding">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Project</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Assignee</th>
+            <th>Due</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tasks.forEach(task => { %>
+            <tr>
+              <td>
+                <a href="/projects/<%= task.project._id %>/tasks/<%= task._id %>" class="task-link"><%= task.title %></a>
+              </td>
+              <td class="text-secondary">
+                <a href="/projects/<%= task.project._id %>" class="subtle-link"><%= task.project.name %></a>
+              </td>
+              <td>
+                <span class="badge badge--<%= task.status === 'completed' ? 'success' : task.status === 'blocked' ? 'danger' : task.status === 'in_progress' ? 'primary' : task.status === 'ready_for_review' ? 'info' : 'neutral' %>">
+                  <%= statusLabels[task.status] %>
+                </span>
+              </td>
+              <td>
+                <span class="badge badge--<%= task.priority === 'critical' ? 'danger' : task.priority === 'high' ? 'warning' : task.priority === 'medium' ? 'primary' : 'neutral' %>">
+                  <%= task.priority %>
+                </span>
+              </td>
+              <td class="text-secondary"><%= task.assignee ? task.assignee.fullName : '—' %></td>
+              <td class="<%= task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' ? 'text-danger' : 'text-secondary' %>">
+                <%= task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' %>
+              </td>
+              <td><a href="/projects/<%= task.project._id %>/tasks/<%= task._id %>" class="btn btn--sm btn--ghost">View</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
