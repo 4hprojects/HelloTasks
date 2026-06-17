@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const AppSetting = require('../models/AppSetting');
 const { sendEmail } = require('../services/emailService');
+const { verifyTurnstile } = require('../utils/turnstile');
 
 async function getRegister(req, res) {
   res.render('auth/register', { title: 'Create Account' });
@@ -12,6 +13,10 @@ async function postRegister(req, res) {
   const { firstName, lastName, email, password } = req.body;
   const fullName = `${(firstName || '').trim()} ${(lastName || '').trim()}`.trim();
   try {
+    if (!await verifyTurnstile(req.body['cf-turnstile-response'], req.ip)) {
+      req.session.flash = { error: 'Security check failed. Please try again.' };
+      return res.redirect('/register');
+    }
     const settings = await AppSetting.findById('app');
     if (settings && !settings.openRegistration) {
       req.session.flash = { error: 'Registration is currently closed. Please contact an administrator.' };
@@ -49,6 +54,10 @@ async function getLogin(req, res) {
 async function postLogin(req, res) {
   const { email, password } = req.body;
   try {
+    if (!await verifyTurnstile(req.body['cf-turnstile-response'], req.ip)) {
+      req.session.flash = { error: 'Security check failed. Please try again.' };
+      return res.redirect('/login');
+    }
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       req.session.flash = { error: 'Invalid email or password.' };
@@ -81,6 +90,10 @@ async function getForgotPassword(req, res) {
 async function postForgotPassword(req, res) {
   const { email } = req.body;
   try {
+    if (!await verifyTurnstile(req.body['cf-turnstile-response'], req.ip)) {
+      req.session.flash = { error: 'Security check failed. Please try again.' };
+      return res.redirect('/forgot-password');
+    }
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     // Always show the same message to avoid email enumeration
     const successMsg = 'If that email is registered, a reset link has been sent.';

@@ -86,8 +86,14 @@
       </div>
       <span class="form-error confirm-password-error" style="display:none">Passwords do not match.</span>
     </div>
+    <% if (turnstileSiteKey) { %>
+      <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" style="margin-bottom:0.75rem;"></div>
+    <% } %>
     <button type="submit" class="btn btn--primary btn--full" data-loading-text="Creating account...">Create Account</button>
   </form>
+  <% if (turnstileSiteKey) { %>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <% } %>
 
   <p class="auth-footer">Already have an account? <a href="/login">Sign in</a></p>
 </div>
