@@ -5,6 +5,17 @@ const FileRecord = require('../models/FileRecord');
 const Project = require('../models/Project');
 const { formatSize } = require('./fileController');
 const { notify, notifyMany } = require('../utils/notify');
+const { sendEmail } = require('../services/emailService');
+
+function taskEmailHtml(recipientName, message, taskPath) {
+  const url = `${process.env.APP_URL || 'http://localhost:3000'}${taskPath}`;
+  return `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;"><p>Hi ${recipientName},</p><p>${message}</p><p style="margin:1.5rem 0;"><a href="${url}" style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">View Task</a></p><p style="color:#64748B;font-size:0.875rem;">— HelloTasks</p></div>`;
+}
+
+async function sendTaskEmail(to, subject, html) {
+  try { await sendEmail(to, subject, html); }
+  catch (err) { console.error('Task email failed:', err.message); }
+}
 
 // Status transitions per project role (canonical + legacy aliases)
 const _managerTransitions = {
@@ -132,9 +143,18 @@ async function createTask(req, res) {
   });
 
   if (assigneeId && assigneeId !== req.user._id.toString()) {
+    const taskPath = `/projects/${req.project._id}/tasks/${task._id}`;
     await notify(assigneeId, 'task_assigned',
       `You have been assigned to "${task.title}" in ${req.project.name}.`,
-      { link: `/projects/${req.project._id}/tasks/${task._id}`, projectId: req.project._id, taskId: task._id });
+      { link: taskPath, projectId: req.project._id, taskId: task._id });
+    const assignee = await User.findById(assigneeId).select('email fullName').lean();
+    if (assignee) {
+      await sendTaskEmail(
+        assignee.email,
+        `You've been assigned to "${task.title}"`,
+        taskEmailHtml(assignee.fullName, `You have been assigned to <strong>${task.title}</strong> in <strong>${req.project.name}</strong>.`, taskPath)
+      );
+    }
   }
 
   req.session.flash = { success: `Task "${task.title}" created.` };
@@ -234,6 +254,8 @@ async function updateTask(req, res) {
     items.forEach(item => { if (item && item.trim()) checklist.push({ item: item.trim() }); });
   }
 
+  const prevAssigneeId = task.assignee ? (task.assignee._id || task.assignee).toString() : null;
+
   task.title = title.trim();
   task.description = description ? description.trim() : '';
   task.assignee = assigneeId || null;
@@ -250,6 +272,22 @@ async function updateTask(req, res) {
   }
 
   await task.save();
+
+  const newAssigneeId = assigneeId ? assigneeId.toString() : null;
+  if (newAssigneeId && newAssigneeId !== prevAssigneeId && newAssigneeId !== req.user._id.toString()) {
+    const taskPath = `/projects/${req.project._id}/tasks/${task._id}`;
+    await notify(newAssigneeId, 'task_assigned', `You were assigned to "${task.title}".`,
+      { link: taskPath, projectId: req.project._id, taskId: task._id });
+    const assignee = await User.findById(newAssigneeId).select('email fullName').lean();
+    if (assignee) {
+      await sendTaskEmail(
+        assignee.email,
+        `You've been assigned to "${task.title}"`,
+        taskEmailHtml(assignee.fullName, `You have been assigned to <strong>${task.title}</strong> in <strong>${req.project.name}</strong>.`, taskPath)
+      );
+    }
+  }
+
   req.session.flash = { success: 'Task updated.' };
   res.redirect(`/projects/${req.project._id}/tasks/${task._id}`);
 }
@@ -298,32 +336,68 @@ async function updateStatus(req, res) {
   task.statusHistory.push({ status: finalStatus, changedBy: req.user._id, note: note || '' });
   await task.save();
 
-  // Notifications
-  const taskLink = `/projects/${req.project._id}/tasks/${task._id}`;
-  const opts = { link: taskLink, projectId: req.project._id, taskId: task._id };
+  // Notifications + emails
+  const taskPath = `/projects/${req.project._id}/tasks/${task._id}`;
+  const opts = { link: taskPath, projectId: req.project._id, taskId: task._id };
   const assigneeId = task.assignee ? task.assignee._id || task.assignee : null;
+  const assigneeEmail = task.assignee && task.assignee.email ? task.assignee.email : null;
+  const assigneeName  = task.assignee && task.assignee.fullName ? task.assignee.fullName : null;
 
   if (finalStatus === 'assigned' && assigneeId && assigneeId.toString() !== req.user._id.toString()) {
     await notify(assigneeId, 'task_assigned', `You were assigned to "${task.title}".`, opts);
+    if (assigneeEmail) {
+      await sendTaskEmail(
+        assigneeEmail,
+        `You've been assigned to "${task.title}"`,
+        taskEmailHtml(assigneeName, `You have been assigned to <strong>${task.title}</strong> in <strong>${req.project.name}</strong>.`, taskPath)
+      );
+    }
   }
   if (finalStatus === 'ready_for_review') {
-    const qmIds = req.project.members
-      .filter(m => ['quality_manager','manager','owner','project_lead'].includes(m.role) && m.user._id.toString() !== req.user._id.toString())
-      .map(m => m.user._id);
-    await notifyMany(qmIds, 'task_ready_for_review', `"${task.title}" is ready for review.`, opts);
+    const qmMembers = req.project.members
+      .filter(m => ['quality_manager','manager','owner','project_lead'].includes(m.role) && m.user._id.toString() !== req.user._id.toString());
+    await notifyMany(qmMembers.map(m => m.user._id), 'task_ready_for_review', `"${task.title}" is ready for review.`, opts);
+    await Promise.all(qmMembers.filter(m => m.user.email).map(m =>
+      sendTaskEmail(
+        m.user.email,
+        `"${task.title}" is ready for review`,
+        taskEmailHtml(m.user.fullName, `<strong>${task.title}</strong> in <strong>${req.project.name}</strong> has been submitted for review.`, taskPath)
+      )
+    ));
   }
   if (finalStatus === 'returned_for_refinement' && assigneeId && assigneeId.toString() !== req.user._id.toString()) {
     await notify(assigneeId, 'task_returned', `"${task.title}" was returned for refinement.`, opts);
+    if (assigneeEmail) {
+      const qaNote = note ? ` The reviewer noted: <em>${note}</em>` : '';
+      await sendTaskEmail(
+        assigneeEmail,
+        `"${task.title}" was returned for refinement`,
+        taskEmailHtml(assigneeName, `<strong>${task.title}</strong> in <strong>${req.project.name}</strong> has been returned for refinement.${qaNote}`, taskPath)
+      );
+    }
   }
   if (finalStatus === 'approved' && task.requiresLeadApproval) {
-    const leadIds = req.project.members
-      .filter(m => ['project_lead','manager','owner'].includes(m.role) && m.user._id.toString() !== req.user._id.toString())
-      .map(m => m.user._id);
-    await notifyMany(leadIds, 'task_approved', `"${task.title}" was approved by QA and needs your sign-off.`, opts);
+    const leadMembers = req.project.members
+      .filter(m => ['project_lead','manager','owner'].includes(m.role) && m.user._id.toString() !== req.user._id.toString());
+    await notifyMany(leadMembers.map(m => m.user._id), 'task_approved', `"${task.title}" was approved by QA and needs your sign-off.`, opts);
+    await Promise.all(leadMembers.filter(m => m.user.email).map(m =>
+      sendTaskEmail(
+        m.user.email,
+        `"${task.title}" needs your sign-off`,
+        taskEmailHtml(m.user.fullName, `<strong>${task.title}</strong> in <strong>${req.project.name}</strong> was approved by QA and needs your final sign-off.`, taskPath)
+      )
+    ));
   }
   if (finalStatus === 'completed') {
     if (assigneeId && assigneeId.toString() !== req.user._id.toString()) {
       await notify(assigneeId, 'task_completed', `"${task.title}" has been completed.`, opts);
+      if (assigneeEmail) {
+        await sendTaskEmail(
+          assigneeEmail,
+          `"${task.title}" has been completed`,
+          taskEmailHtml(assigneeName, `<strong>${task.title}</strong> in <strong>${req.project.name}</strong> has been completed.`, taskPath)
+        );
+      }
     }
   }
 

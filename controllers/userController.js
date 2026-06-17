@@ -70,11 +70,21 @@ async function updateUser(req, res) {
   if (accountStatus && validStatuses.includes(accountStatus)) user.accountStatus = accountStatus;
   await user.save();
 
-  // Notify user when their account is activated
+  // Notify + email user when their account is activated
   if (!wasActive && user.accountStatus === 'active') {
     await notify(user._id, 'account_activated',
       'Your HelloTasks account has been activated. You can now log in.',
       { link: '/dashboard' });
+    const appUrl = process.env.APP_URL || 'http://localhost:3000';
+    try {
+      await sendEmail(
+        user.email,
+        'Your HelloTasks account has been activated',
+        `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;"><p>Hi ${user.fullName},</p><p>Your HelloTasks account has been activated. You can now log in and get started.</p><p style="margin:1.5rem 0;"><a href="${appUrl}/login" style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Log In</a></p><p style="color:#64748B;font-size:0.875rem;">— HelloTasks</p></div>`
+      );
+    } catch (err) {
+      console.error('Account activation email failed:', err.message);
+    }
   }
 
   req.session.flash = { success: `${user.fullName} updated.` };
