@@ -1400,3 +1400,46 @@
   color: var(--color-text-muted);
   font-size: 0.8125rem;
 }
+
+/* ── Comment @mention autocomplete ── */
+.mention-wrapper {
+  position: relative;
+}
+
+.mention-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  z-index: 100;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.mention-option {
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  outline: none;
+}
+
+.mention-option:hover,
+.mention-option:focus {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+/* ── @mention chip in rendered comments ── */
+.mention {
+  color: var(--color-primary);
+  font-weight: 500;
+  background-color: var(--color-primary-light);
+  padding: 0.0625rem 0.25rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}

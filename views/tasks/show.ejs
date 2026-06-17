@@ -219,7 +219,14 @@
                     </form>
                   <% } %>
                 </div>
-                <p class="comment-body"><%= c.content %></p>
+                <%
+                  let _body = c.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                  project.members.forEach(function(m) {
+                    const _esc = m.user.fullName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+                    _body = _body.replace(new RegExp('@'+_esc,'gi'),'<span class="mention">@'+m.user.fullName+'</span>');
+                  });
+                %>
+                <p class="comment-body"><%- _body %></p>
               </div>
             <% }) %>
           </div>
@@ -228,12 +235,99 @@
         <% } %>
         <div class="panel-section">
           <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments" class="comment-form">
-            <textarea name="content" class="form-textarea comment-textarea" rows="3" placeholder="Add a comment…" required></textarea>
+            <div class="mention-wrapper">
+              <textarea id="commentContent" name="content" class="form-textarea comment-textarea" rows="3" placeholder="Add a comment… type @ to mention someone" required></textarea>
+              <div id="mentionDropdown" class="mention-dropdown" style="display:none;"></div>
+            </div>
             <div class="comment-form-actions">
               <button type="submit" class="btn btn--primary btn--sm">Post Comment</button>
             </div>
           </form>
         </div>
+        <script>
+        (function() {
+          var textarea = document.getElementById('commentContent');
+          var dropdown = document.getElementById('mentionDropdown');
+          if (!textarea || !dropdown) return;
+
+          var USERS = <%- JSON.stringify(project.members
+            .filter(function(m){ return m.user._id.toString() !== user._id.toString(); })
+            .map(function(m){ return { name: m.user.fullName }; })
+          ) %>;
+
+          var mentionStart = -1;
+
+          function getQuery() {
+            var val = textarea.value;
+            var pos = textarea.selectionStart;
+            for (var i = pos - 1; i >= 0 && pos - i <= 60; i--) {
+              if (val[i] === '@') return { start: i, query: val.slice(i + 1, pos) };
+              if (val[i] === '\n') return null;
+            }
+            return null;
+          }
+
+          function renderDropdown(matches) {
+            dropdown.innerHTML = matches.slice(0, 6).map(function(u) {
+              return '<div class="mention-option" tabindex="-1" data-name="' + u.name.replace(/"/g,'&quot;') + '">' + u.name + '</div>';
+            }).join('');
+            dropdown.style.display = 'block';
+            dropdown.querySelectorAll('.mention-option').forEach(function(el) {
+              el.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                insertMention(this.dataset.name);
+              });
+            });
+          }
+
+          function hideDropdown() {
+            dropdown.style.display = 'none';
+            mentionStart = -1;
+          }
+
+          function insertMention(name) {
+            var val = textarea.value;
+            var pos = textarea.selectionStart;
+            var q = getQuery();
+            if (!q) return;
+            textarea.value = val.slice(0, q.start) + '@' + name + ' ' + val.slice(pos);
+            var newPos = q.start + name.length + 2;
+            textarea.setSelectionRange(newPos, newPos);
+            textarea.focus();
+            hideDropdown();
+          }
+
+          textarea.addEventListener('input', function() {
+            var q = getQuery();
+            if (!q) { hideDropdown(); return; }
+            mentionStart = q.start;
+            var search = q.query.toLowerCase();
+            var matches = USERS.filter(function(u) { return u.name.toLowerCase().includes(search); });
+            matches.length > 0 ? renderDropdown(matches) : hideDropdown();
+          });
+
+          textarea.addEventListener('keydown', function(e) {
+            if (dropdown.style.display === 'none') return;
+            var opts = dropdown.querySelectorAll('.mention-option');
+            var focused = dropdown.querySelector('.mention-option:focus');
+            if (e.key === 'Escape') { e.preventDefault(); hideDropdown(); }
+            else if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              (focused ? focused.nextElementSibling || opts[0] : opts[0]).focus();
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              (focused ? focused.previousElementSibling || opts[opts.length-1] : opts[opts.length-1]).focus();
+            } else if (e.key === 'Enter' && focused) {
+              e.preventDefault();
+              insertMention(focused.dataset.name);
+            }
+          });
+
+          document.addEventListener('click', function(e) {
+            if (e.target !== textarea && !dropdown.contains(e.target)) hideDropdown();
+          });
+        })();
+        </script>
       </div>
 
     </div>
