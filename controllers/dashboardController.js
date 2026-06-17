@@ -45,11 +45,17 @@ async function getDashboard(req, res) {
     approved: 'Approved', completed: 'Completed', blocked: 'Blocked'
   };
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = req.user.fullName.split(' ')[0];
+
   res.render('dashboard/index', {
     title: 'Dashboard',
     stats: { totalProjects, myTasks, dueSoon, readyForReview, blocked, completedRecently },
     recentTasks,
-    statusLabels: STATUS_LABELS
+    statusLabels: STATUS_LABELS,
+    greeting,
+    firstName
   });
 }
 
