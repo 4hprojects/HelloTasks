@@ -73,6 +73,21 @@
   object-fit: contain;
 }
 
+.auth-invite-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.875rem;
+  box-shadow: 0 0 0 4px var(--color-surface), 0 0 0 5px var(--color-border);
+}
+
 .auth-title {
   font-size: 1.375rem;
   font-weight: 700;

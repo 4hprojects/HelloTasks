@@ -1,12 +1,18 @@
+<%
+  const firstName = invitedUser.fullName.split(' ')[0];
+  const initial   = invitedUser.fullName.charAt(0).toUpperCase();
+%>
 <div class="auth-card">
   <div class="auth-header">
-    <div class="auth-logo">HT</div>
-    <h1 class="auth-title">Welcome to HelloTasks</h1>
-    <p class="auth-subtitle">Hi <%= invitedUser.fullName %>, set a password to activate your account</p>
+    <img src="/HelloTasksIcon.png" alt="HelloTasks" class="auth-logo">
+    <div class="auth-invite-avatar"><%= initial %></div>
+    <h1 class="auth-title">You're invited!</h1>
+    <p class="auth-subtitle">Hi <%= firstName %>, set a password to activate your account</p>
   </div>
 
   <div class="auth-info">
-    <span class="auth-info-label">Signing up as</span>
+    <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15" style="color:var(--color-text-muted);flex-shrink:0"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+    <span class="auth-info-label">Signing in as</span>
     <span class="auth-info-value"><%= invitedUser.email %></span>
   </div>
 
@@ -26,6 +32,7 @@
         <%- include('../partials/password-toggle', { targetId: 'password' }) %>
         <label for="password" class="form-label">Password</label>
       </div>
+      <span class="form-hint">Min. 8 characters</span>
     </div>
     <div class="form-group">
       <div class="form-float form-input-wrapper">
