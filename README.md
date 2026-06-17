@@ -70,13 +70,13 @@ Requires `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in your `.env`.
 
 | File | Purpose |
 |---|---|
-| [PROJECT-BRIEF.md](PROJECT-BRIEF.md) | Full project specification (approved) |
-| [DECISIONS.md](DECISIONS.md) | Key decisions and resolved questions |
-| [BUILD-TRACKER.md](BUILD-TRACKER.md) | Build phase progress and timestamps |
-| [DATABASE-STRATEGY.md](DATABASE-STRATEGY.md) | MongoDB and Supabase usage rules |
-| [IMPLEMENTATION-GUIDE.md](IMPLEMENTATION-GUIDE.md) | Folder structure and coding standards |
+| [docs/reference/project-brief.md](docs/reference/project-brief.md) | Full project specification (approved) |
+| [docs/active/decisions.md](docs/active/decisions.md) | Key decisions and resolved questions |
+| [docs/active/build-tracker.md](docs/active/build-tracker.md) | Build phase progress and timestamps |
+| [docs/reference/database-strategy.md](docs/reference/database-strategy.md) | MongoDB and Supabase usage rules |
+| [docs/reference/implementation-guide.md](docs/reference/implementation-guide.md) | Folder structure and coding standards |
 | [docs/active/](docs/active/) | Active checklists for setup and verification |
-| [docs/reference/](docs/reference/) | Technical reference docs (filled as we build) |
+| [docs/reference/](docs/reference/) | Technical reference docs |
 
 ## Deployment
 

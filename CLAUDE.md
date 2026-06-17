@@ -8,19 +8,19 @@ The project brief has been approved. Do not restart guided intake.
 
 Before writing any code, read the following files in order:
 
-1. `PROJECT-BRIEF.md`
-2. `PROJECT-CONTEXT.md`
-3. `DATABASE-STRATEGY.md`
-4. `IMPLEMENTATION-GUIDE.md`
-5. `DECISIONS.md`
-6. `BUILD-TRACKER.md`
+1. `docs/reference/project-brief.md`
+2. `docs/reference/project-context.md`
+3. `docs/reference/database-strategy.md`
+4. `docs/reference/implementation-guide.md`
+5. `docs/active/decisions.md`
+6. `docs/active/build-tracker.md`
 7. `docs/active/user-setup-checklist.md`
 
 ## Build Flow
 
-Follow the phases in `BUILD-TRACKER.md` in order.
+Follow the phases in `docs/active/build-tracker.md` in order.
 
-Update `BUILD-TRACKER.md` as each phase starts and completes.
+Update `docs/active/build-tracker.md` as each phase starts and completes.
 
 ## Stack
 
