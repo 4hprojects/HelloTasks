@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const User = require('../models/User');
