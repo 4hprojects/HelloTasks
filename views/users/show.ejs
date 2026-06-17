@@ -1,45 +1,67 @@
+<%
+  const _rb2 = { system_admin:'danger', super_admin:'danger', owner:'danger', manager:'primary', project_lead:'primary', quality_manager:'info', member:'success', developer:'success', viewer:'neutral' };
+  const statusColor = targetUser.accountStatus === 'active' ? 'var(--color-accent)' : targetUser.accountStatus === 'suspended' ? 'var(--color-error)' : 'var(--color-warning)';
+  const isSelf = targetUser._id.toString() === user._id.toString();
+%>
+
 <div class="page-header">
-  <div class="user-hero">
-    <div class="user-avatar user-avatar--lg"><%= targetUser.fullName.charAt(0).toUpperCase() %></div>
-    <div>
-      <h1 class="page-subtitle"><%= targetUser.fullName %></h1>
-      <p class="page-desc"><%= targetUser.email %></p>
+  <a href="/users" class="back-link">← Back to Users</a>
+</div>
+
+<div class="user-show-hero" style="border-left-color: <%= statusColor %>;">
+  <div class="user-avatar user-avatar--xl"><%= targetUser.fullName.charAt(0).toUpperCase() %></div>
+  <div class="user-show-hero-info">
+    <h1 class="user-show-name"><%= targetUser.fullName %></h1>
+    <p class="user-show-email"><%= targetUser.email %></p>
+    <div class="user-show-badges">
+      <span class="badge badge--<%= _rb2[targetUser.globalRole] || 'neutral' %>">
+        <%= roleLabels[targetUser.globalRole] || targetUser.globalRole %>
+      </span>
+      <span class="badge badge--<%= targetUser.accountStatus === 'active' ? 'success' : targetUser.accountStatus === 'suspended' ? 'danger' : 'neutral' %>">
+        <%= targetUser.accountStatus %>
+      </span>
     </div>
   </div>
-  <a href="/users" class="btn btn--outline btn--sm">← Back to Users</a>
 </div>
 
 <div class="layout-split">
 
   <div class="panel">
-    <div class="panel-header"><h2 class="panel-title">Account Info</h2></div>
+    <div class="panel-header"><h2 class="panel-title">Account Details</h2></div>
     <div class="panel-body">
       <dl class="detail-list">
-        <dt>Role</dt>
+        <dt>Full Name</dt><dd><%= targetUser.fullName %></dd>
+        <dt>Email</dt><dd><%= targetUser.email %></dd>
+        <dt>Global Role</dt>
         <dd>
-          <% const _rb2 = { system_admin:'danger', super_admin:'danger', owner:'danger', manager:'primary', project_lead:'primary', quality_manager:'info', member:'success', developer:'success', viewer:'neutral' }; %>
           <span class="badge badge--<%= _rb2[targetUser.globalRole] || 'neutral' %>">
             <%= roleLabels[targetUser.globalRole] || targetUser.globalRole %>
           </span>
         </dd>
-        <dt>Status</dt>
+        <dt>Account Status</dt>
         <dd>
           <span class="badge badge--<%= targetUser.accountStatus === 'active' ? 'success' : targetUser.accountStatus === 'suspended' ? 'danger' : 'neutral' %>">
             <%= targetUser.accountStatus %>
           </span>
         </dd>
-        <dt>Joined</dt><dd><%= new Date(targetUser.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></dd>
+        <dt>Member Since</dt><dd><%= new Date(targetUser.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></dd>
       </dl>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-header"><h2 class="panel-title">Update Account</h2></div>
+  <div class="panel<%= isSelf ? ' panel--muted' : '' %>">
+    <div class="panel-header">
+      <h2 class="panel-title">Update Account</h2>
+      <% if (isSelf) { %><span class="badge badge--neutral">your account</span><% } %>
+    </div>
     <div class="panel-body">
+      <% if (isSelf) { %>
+        <p class="text-secondary text-sm" style="margin-bottom:1rem;">You cannot change your own role or status.</p>
+      <% } %>
       <form action="/users/<%= targetUser._id %>" method="POST" class="form-stack">
         <div class="form-group">
           <label class="form-label" for="globalRole">Global Role</label>
-          <select id="globalRole" name="globalRole" class="form-select">
+          <select id="globalRole" name="globalRole" class="form-select" <%= isSelf ? 'disabled' : '' %>>
             <option value="system_admin"    <%= targetUser.globalRole === 'system_admin'    ? 'selected' : '' %>>System Admin</option>
             <option value="owner"           <%= targetUser.globalRole === 'owner'           ? 'selected' : '' %>>Owner</option>
             <option value="manager"         <%= targetUser.globalRole === 'manager'         ? 'selected' : '' %>>Manager</option>
@@ -53,14 +75,14 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="accountStatus">Account Status</label>
-          <select id="accountStatus" name="accountStatus" class="form-select">
-            <option value="pending" <%= targetUser.accountStatus === 'pending' ? 'selected' : '' %>>Pending</option>
-            <option value="active" <%= targetUser.accountStatus === 'active' ? 'selected' : '' %>>Active</option>
+          <select id="accountStatus" name="accountStatus" class="form-select" <%= isSelf ? 'disabled' : '' %>>
+            <option value="pending"   <%= targetUser.accountStatus === 'pending'   ? 'selected' : '' %>>Pending</option>
+            <option value="active"    <%= targetUser.accountStatus === 'active'    ? 'selected' : '' %>>Active</option>
             <option value="suspended" <%= targetUser.accountStatus === 'suspended' ? 'selected' : '' %>>Suspended</option>
           </select>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn btn--primary">Save Changes</button>
+          <button type="submit" class="btn btn--primary" <%= isSelf ? 'disabled' : '' %>>Save Changes</button>
         </div>
       </form>
     </div>

@@ -335,23 +335,102 @@
   flex-shrink: 0;
 }
 
-/* ── User hero (show page header) ── */
-.user-hero {
+/* ── User hero (show page) ── */
+.user-show-hero {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 1rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
 }
 
-/* ── User name cell in table ── */
+.user-show-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.user-show-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.user-show-email {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.user-show-badges {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+/* ── User avatar size variants ── */
+.user-avatar--xl {
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Avatar status tints */
+.user-avatar--pending   { background-color: var(--color-warning); }
+.user-avatar--suspended { background-color: var(--color-text-muted); }
+
+/* ── User index table cells ── */
+.user-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.user-cell-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .user-table-name {
   font-weight: 600;
   color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.user-cell-email {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
 .self-tag {
   font-size: 0.75rem;
   color: var(--color-text-muted);
   font-style: italic;
+  margin-left: 0.25rem;
+}
+
+/* ── Suspended user row ── */
+.user-row--suspended {
+  opacity: 0.6;
+}
+
+/* ── Muted panel (disabled form) ── */
+.panel--muted {
+  background-color: var(--color-surface-alt);
+}
+
+/* ── User hero (legacy — kept for any old references) ── */
+.user-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
 }
 
 /* ── Add member form ── */
