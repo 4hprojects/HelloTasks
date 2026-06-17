@@ -1,5 +1,8 @@
 <div class="page-header">
-  <h1 class="page-title">Admin Settings</h1>
+  <div>
+    <h1 class="page-title">Settings</h1>
+    <p class="page-desc">App configuration, system info, and admin tools.</p>
+  </div>
 </div>
 
 <div class="admin-layout">
@@ -10,7 +13,7 @@
       <h2 class="panel-title">App Settings</h2>
     </div>
     <div class="panel-body">
-      <form method="POST" action="/admin/settings" novalidate>
+      <form method="POST" action="/admin/settings" novalidate class="form-stack">
         <div class="form-group">
           <label for="appName" class="form-label">App Name</label>
           <input type="text" id="appName" name="appName" class="form-input" value="<%= settings.appName %>" placeholder="HelloTasks" />
@@ -26,7 +29,7 @@
             <input type="checkbox" name="openRegistration" <%= settings.openRegistration ? 'checked' : '' %> />
             <span>Open Registration</span>
           </label>
-          <p class="form-hint">When enabled, anyone can register. Super Admin activates accounts after review.</p>
+          <p class="form-hint" style="margin-top:0.375rem;">When enabled, anyone can register. An admin activates accounts after review.</p>
         </div>
         <div class="form-group">
           <label for="weeklyReportNote" class="form-label">Weekly Report Note <span class="form-label-optional">(optional)</span></label>
@@ -45,31 +48,29 @@
       <h2 class="panel-title">Weekly Report</h2>
     </div>
     <div class="panel-body">
-      <p class="panel-desc">Sends a project and task summary email to all active Super Admins and Project Leads.</p>
+      <p class="panel-desc">Sends a project and task summary email to all active System Admins and Project Leads.</p>
       <dl class="detail-list" style="margin-bottom:1.5rem;">
         <dt>Recipients</dt>
-        <dd>All active Super Admins + Project Leads</dd>
+        <dd>All active System Admins + Project Leads</dd>
         <dt>Contents</dt>
         <dd>Overall stats, completed this week, tasks in review, blocked tasks, per-project breakdown</dd>
-        <dt>Format</dt>
+        <dt>Delivery</dt>
         <dd>HTML email via Resend</dd>
       </dl>
-      <form method="POST" action="/admin/weekly-report" onsubmit="return confirm('Send the weekly report now to all Super Admins and Project Leads?');">
-        <button type="submit" class="btn btn--primary">Send Weekly Report Now</button>
+      <form method="POST" action="/admin/weekly-report" onsubmit="return confirm('Send the weekly report now to all System Admins and Project Leads?');">
+        <button type="submit" class="btn btn--primary btn--sm">Send Weekly Report Now</button>
       </form>
     </div>
   </div>
 
   <!-- System Info -->
   <div class="panel">
-    <div class="panel-header">
-      <h2 class="panel-title">System Info</h2>
-    </div>
+    <div class="panel-header"><h2 class="panel-title">System Info</h2></div>
     <div class="panel-body">
       <dl class="detail-list">
         <dt>Node.js</dt><dd><%= process.version %></dd>
-        <dt>Environment</dt><dd><%= process.env.APP_ENV || 'development' %></dd>
-        <dt>App URL</dt><dd><%= process.env.APP_URL || 'http://localhost:3000' %></dd>
+        <dt>Environment</dt><dd><span class="badge badge--<%= (process.env.APP_ENV || 'development') === 'production' ? 'success' : 'neutral' %>"><%= process.env.APP_ENV || 'development' %></span></dd>
+        <dt>App URL</dt><dd class="text-secondary text-sm"><%= process.env.APP_URL || 'http://localhost:3000' %></dd>
         <dt>Database</dt><dd>MongoDB (Mongoose)</dd>
         <dt>File Storage</dt><dd>Supabase Storage</dd>
         <dt>Email</dt><dd>Resend</dd>
@@ -93,7 +94,6 @@
           <input type="hidden" name="supportEmail" value="<%= settings.supportEmail %>" />
           <input type="hidden" name="weeklyReportNote" value="<%= settings.weeklyReportNote %>" />
           <% if (settings.openRegistration) { %>
-            <!-- leave openRegistration unchecked = disabled -->
             <button type="submit" class="btn btn--sm btn--danger-outline">Disable Registration</button>
           <% } else { %>
             <input type="hidden" name="openRegistration" value="on" />
