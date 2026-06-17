@@ -1,6 +1,50 @@
+<%
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Relative time helper
+  function relTime(date) {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 1)   return 'just now';
+    if (mins < 60)  return mins + 'm ago';
+    if (hours < 24) return hours + 'h ago';
+    if (days === 1) return 'Yesterday';
+    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  // Date group helper
+  function dateGroup(date) {
+    const d   = new Date(date); d.setHours(0,0,0,0);
+    const now = new Date();     now.setHours(0,0,0,0);
+    const yest = new Date(now - 86400000);
+    if (d >= now)  return 'Today';
+    if (d >= yest) return 'Yesterday';
+    return 'Earlier';
+  }
+
+  // Icon + color per type
+  const typeIcon = {
+    task_assigned: { color:'primary', svg:'<path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>' },
+    task_comment:  { color:'primary', svg:'<path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>' },
+    task_ready_for_review: { color:'info', svg:'<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>' },
+    task_approved: { color:'success', svg:'<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' },
+    task_completed:{ color:'success', svg:'<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' },
+    task_returned: { color:'warning', svg:'<path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>' },
+    account_activated: { color:'success', svg:'<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>' },
+    general: { color:'neutral', svg:'<path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>' }
+  };
+%>
+
 <div class="page-header">
-  <h1 class="page-title">Notifications</h1>
-  <% if (notifications.some(n => !n.isRead)) { %>
+  <div>
+    <h1 class="page-title">Notifications</h1>
+    <% if (unreadCount > 0) { %>
+      <p class="page-desc"><%= unreadCount %> unread</p>
+    <% } %>
+  </div>
+  <% if (unreadCount > 0) { %>
     <form action="/notifications/read-all" method="POST">
       <button type="submit" class="btn btn--sm btn--outline">Mark All Read</button>
     </form>
@@ -8,29 +52,49 @@
 </div>
 
 <% if (notifications.length === 0) { %>
-  <div class="empty-state-block">
-    <p>No notifications yet.</p>
+  <div class="panel">
+    <div class="panel-body">
+      <div class="proj-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+        <p>You're all caught up — no notifications yet.</p>
+      </div>
+    </div>
   </div>
 <% } else { %>
-  <div class="notif-list">
-    <% notifications.forEach(n => { %>
-      <div class="notif-item <%= n.isRead ? 'notif-item--read' : 'notif-item--unread' %>">
-        <div class="notif-item-body">
-          <div class="notif-type-label"><%= typeLabels[n.type] || n.type %></div>
-          <div class="notif-message"><%= n.message %></div>
-          <div class="notif-time"><%= new Date(n.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) %></div>
+  <div class="notif-feed">
+    <%
+      let lastGroup = null;
+      notifications.forEach(function(n) {
+        const group = dateGroup(n.createdAt);
+        const icon  = typeIcon[n.type] || typeIcon.general;
+    %>
+      <% if (group !== lastGroup) { lastGroup = group; %>
+        <div class="notif-date-divider"><span><%= group %></span></div>
+      <% } %>
+
+      <div class="notif-card <%= n.isRead ? 'notif-card--read' : 'notif-card--unread' %>">
+        <div class="notif-card-icon notif-card-icon--<%= icon.color %>">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><%- icon.svg %></svg>
         </div>
-        <div class="notif-item-actions">
+        <div class="notif-card-body">
+          <p class="notif-card-type"><%= typeLabels[n.type] || n.type %></p>
+          <p class="notif-card-message"><%= n.message %></p>
+          <p class="notif-card-time"><%= relTime(n.createdAt) %></p>
+        </div>
+        <div class="notif-card-actions">
           <% if (n.link) { %>
-            <a href="<%= n.link %>" class="btn btn--sm btn--outline">View</a>
+            <a href="<%= n.link %>" class="notif-view-link">View →</a>
           <% } %>
           <% if (!n.isRead) { %>
             <form action="/notifications/<%= n._id %>/read" method="POST" style="display:inline;">
-              <button type="submit" class="btn btn--sm btn--ghost">Mark Read</button>
+              <button type="submit" class="notif-read-btn" title="Mark as read">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><circle cx="10" cy="10" r="4"/></svg>
+              </button>
             </form>
           <% } %>
         </div>
       </div>
-    <% }) %>
+
+    <% }); %>
   </div>
 <% } %>
