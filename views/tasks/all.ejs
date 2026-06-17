@@ -13,9 +13,9 @@
   <select name="priority" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All priorities</option>
     <option value="critical" <%= filters.priority === 'critical' ? 'selected' : '' %>>Critical</option>
-    <option value="high" <%= filters.priority === 'high' ? 'selected' : '' %>>High</option>
-    <option value="medium" <%= filters.priority === 'medium' ? 'selected' : '' %>>Medium</option>
-    <option value="low" <%= filters.priority === 'low' ? 'selected' : '' %>>Low</option>
+    <option value="high"     <%= filters.priority === 'high'     ? 'selected' : '' %>>High</option>
+    <option value="medium"   <%= filters.priority === 'medium'   ? 'selected' : '' %>>Medium</option>
+    <option value="low"      <%= filters.priority === 'low'      ? 'selected' : '' %>>Low</option>
   </select>
   <select name="projectId" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All projects</option>
@@ -25,14 +25,14 @@
   </select>
   <select name="assigneeId" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All assignees</option>
-    <option value="mine" <%= filters.assigneeId === 'mine' ? 'selected' : '' %>>Assigned to me</option>
+    <option value="mine"       <%= filters.assigneeId === 'mine'       ? 'selected' : '' %>>Assigned to me</option>
     <option value="unassigned" <%= filters.assigneeId === 'unassigned' ? 'selected' : '' %>>Unassigned</option>
   </select>
   <select name="sort" class="form-select filter-select" onchange="this.form.submit()">
-    <option value="newest" <%= !filters.sort || filters.sort === 'newest' ? 'selected' : '' %>>Last updated</option>
-    <option value="due_asc" <%= filters.sort === 'due_asc' ? 'selected' : '' %>>Due date</option>
+    <option value="newest"   <%= !filters.sort || filters.sort === 'newest'   ? 'selected' : '' %>>Last updated</option>
+    <option value="due_asc"  <%= filters.sort === 'due_asc'  ? 'selected' : '' %>>Due date</option>
     <option value="priority" <%= filters.sort === 'priority' ? 'selected' : '' %>>Priority</option>
-    <option value="status" <%= filters.sort === 'status' ? 'selected' : '' %>>Status</option>
+    <option value="status"   <%= filters.sort === 'status'   ? 'selected' : '' %>>Status</option>
   </select>
   <button type="submit" class="btn btn--outline btn--sm">Search</button>
   <% if (filters.search || filters.status || filters.priority || filters.projectId || filters.assigneeId) { %>
@@ -43,33 +43,33 @@
 <% if (tasks.length === 0) { %>
   <div class="panel">
     <div class="panel-body">
-      <p class="empty-state">No tasks found<% if (Object.values(filters).some(v => v)) { %> matching your filters<% } %>.</p>
+      <div class="proj-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
+        <p>No tasks found<% if (Object.values(filters).some(v => v)) { %> matching your filters<% } %>.</p>
+      </div>
     </div>
   </div>
 <% } else { %>
-  <div class="results-count"><%= tasks.length %> task<%= tasks.length !== 1 ? 's' : '' %></div>
+  <p class="results-count"><%= tasks.length %> task<%= tasks.length !== 1 ? 's' : '' %></p>
   <div class="panel">
     <div class="panel-body no-padding">
       <table class="data-table">
         <thead>
           <tr>
             <th>Task</th>
-            <th>Project</th>
             <th>Status</th>
             <th>Priority</th>
             <th>Assignee</th>
             <th>Due</th>
-            <th></th>
           </tr>
         </thead>
         <tbody>
           <% tasks.forEach(task => { %>
-            <tr>
-              <td>
+            <% const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !['completed','archived'].includes(task.status); %>
+            <tr class="task-row<%= isOverdue ? ' row--overdue' : '' %>">
+              <td class="task-cell">
                 <a href="/projects/<%= task.project._id %>/tasks/<%= task._id %>" class="task-link"><%= task.title %></a>
-              </td>
-              <td class="text-secondary">
-                <a href="/projects/<%= task.project._id %>" class="subtle-link"><%= task.project.name %></a>
+                <a href="/projects/<%= task.project._id %>" class="task-project-tag"><%= task.project.name %></a>
               </td>
               <td>
                 <span class="badge badge--<%= task.status === 'completed' ? 'success' : task.status === 'blocked' ? 'danger' : task.status === 'in_progress' ? 'primary' : task.status === 'ready_for_review' ? 'info' : 'neutral' %>">
@@ -77,15 +77,24 @@
                 </span>
               </td>
               <td>
-                <span class="badge badge--<%= task.priority === 'critical' ? 'danger' : task.priority === 'high' ? 'warning' : task.priority === 'medium' ? 'primary' : 'neutral' %>">
-                  <%= task.priority %>
+                <span class="priority-cell">
+                  <span class="priority-dot priority-dot--<%= task.priority || 'medium' %>"></span>
+                  <span class="priority-text"><%= (task.priority || 'medium').charAt(0).toUpperCase() + (task.priority || 'medium').slice(1) %></span>
                 </span>
               </td>
-              <td class="text-secondary"><%= task.assignee ? task.assignee.fullName : '—' %></td>
-              <td class="<%= task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' ? 'text-danger' : 'text-secondary' %>">
+              <td>
+                <% if (task.assignee) { %>
+                  <span class="assignee-cell">
+                    <span class="user-avatar user-avatar--sm"><%= task.assignee.fullName.charAt(0).toUpperCase() %></span>
+                    <span class="assignee-name"><%= task.assignee.fullName %></span>
+                  </span>
+                <% } else { %>
+                  <span class="text-muted">—</span>
+                <% } %>
+              </td>
+              <td class="<%= isOverdue ? 'text-danger' : 'text-secondary' %> text-sm">
                 <%= task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' %>
               </td>
-              <td><a href="/projects/<%= task.project._id %>/tasks/<%= task._id %>" class="btn btn--sm btn--ghost">View</a></td>
             </tr>
           <% }) %>
         </tbody>
