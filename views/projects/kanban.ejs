@@ -1,9 +1,34 @@
-<div class="kanban-page-header">
-  <div>
-    <a href="/projects/<%= project._id %>" class="back-link">← <%= project.name %></a>
-    <h2 class="page-subtitle">Kanban Board</h2>
+<%
+  const avatarColors = ['proj-avatar--blue','proj-avatar--green','proj-avatar--purple','proj-avatar--amber','proj-avatar--red'];
+  const avatarClass  = avatarColors[project.name.charCodeAt(0) % 5];
+  const initials     = project.name.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+  const statusBadge  = { active:'success', on_hold:'warning', completed:'primary', archived:'neutral' }[project.status] || 'neutral';
+  const statusLabel  = { active:'Active', on_hold:'On Hold', completed:'Completed', archived:'Archived' }[project.status] || project.status;
+  const colAccent = {
+    draft:       'var(--color-border)',
+    assigned:    'var(--color-text-muted)',
+    in_progress: 'var(--color-primary)',
+    review:      'var(--color-info)',
+    approved:    'var(--color-accent)',
+    done:        'var(--color-accent)',
+    blocked:     'var(--color-error)'
+  };
+%>
+
+<!-- Kanban hero header -->
+<div class="kanban-hero">
+  <div class="kanban-hero-left">
+    <div class="proj-avatar <%= avatarClass %>"><%= initials %></div>
+    <div class="kanban-hero-info">
+      <div class="kanban-hero-title-row">
+        <h1 class="kanban-hero-name"><%= project.name %></h1>
+        <span class="badge badge--<%= statusBadge %>"><%= statusLabel %></span>
+        <span class="kanban-hero-label">Kanban</span>
+      </div>
+      <a href="/projects/<%= project._id %>" class="back-link" style="margin-bottom:0;font-size:0.8125rem;">← Back to Project</a>
+    </div>
   </div>
-  <div class="header-actions">
+  <div class="kanban-hero-actions">
     <a href="/projects/<%= project._id %>/tasks" class="btn btn--ghost btn--sm">List View</a>
     <a href="/projects/<%= project._id %>/tasks/new" class="btn btn--primary btn--sm">+ New Task</a>
   </div>
@@ -11,14 +36,17 @@
 
 <div class="kanban-board">
   <% columns.forEach(col => { %>
-    <div class="kanban-col">
+    <div class="kanban-col" style="border-top: 3px solid <%= colAccent[col.key] || 'var(--color-border)' %>;">
       <div class="kanban-col-header">
         <span class="kanban-col-title"><%= col.label %></span>
         <span class="kanban-col-count"><%= col.tasks.length %></span>
       </div>
       <div class="kanban-col-body">
         <% if (col.tasks.length === 0) { %>
-          <div class="kanban-empty">No tasks</div>
+          <div class="kanban-empty">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20" style="opacity:0.25;margin:0 auto 0.375rem;display:block"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+            No tasks
+          </div>
         <% } %>
         <% col.tasks.forEach(task => { %>
           <% if (!task.visible) { %>
@@ -29,13 +57,23 @@
               <span class="kanban-locked-label">Confidential</span>
             </div>
           <% } else { %>
+            <%
+              const checklistTotal = task.checklist ? task.checklist.length : 0;
+              const checklistDone  = task.checklist ? task.checklist.filter(c => c.completed).length : 0;
+              const isOverdue      = task.dueDate && new Date(task.dueDate) < new Date();
+            %>
             <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="kanban-card" data-priority="<%= task.priority %>">
               <div class="kanban-card-priority kanban-priority--<%= task.priority %>"></div>
               <div class="kanban-card-body">
                 <p class="kanban-card-title"><%= task.title %></p>
-                <% if (task.isConfidential) { %>
-                  <span class="badge badge--warning badge--xs">confidential</span>
-                <% } %>
+                <div class="kanban-card-badges">
+                  <% if (task.isConfidential) { %>
+                    <span class="badge badge--warning badge--xs">confidential</span>
+                  <% } %>
+                  <% if (task.requiresLeadApproval) { %>
+                    <span class="badge badge--neutral badge--xs">lead sign-off</span>
+                  <% } %>
+                </div>
               </div>
               <div class="kanban-card-footer">
                 <% if (task.assignee) { %>
@@ -45,11 +83,19 @@
                 <% } else { %>
                   <div class="kanban-assignee kanban-assignee--empty" title="Unassigned">?</div>
                 <% } %>
-                <% if (task.dueDate) { %>
-                  <span class="kanban-due <%= new Date(task.dueDate) < new Date() ? 'kanban-due--overdue' : '' %>">
-                    <%= new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
-                  </span>
-                <% } %>
+                <div class="kanban-card-footer-right">
+                  <% if (checklistTotal > 0) { %>
+                    <span class="kanban-checklist-count <%= checklistDone === checklistTotal ? 'kanban-checklist-count--done' : '' %>" title="Checklist progress">
+                      <svg viewBox="0 0 20 20" fill="currentColor" width="11" height="11"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                      <%= checklistDone %>/<%= checklistTotal %>
+                    </span>
+                  <% } %>
+                  <% if (task.dueDate) { %>
+                    <span class="kanban-due <%= isOverdue ? 'kanban-due--overdue' : '' %>" title="Due date">
+                      <%= new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                    </span>
+                  <% } %>
+                </div>
               </div>
             </a>
           <% } %>
