@@ -1,39 +1,66 @@
-<div class="page-header">
-  <div>
-    <a href="/projects" class="back-link">← Projects</a>
-    <div class="project-title-row">
-      <h2 class="project-heading"><%= project.name %></h2>
-      <span class="badge badge--<%= project.status === 'active' ? 'success' : project.status === 'on_hold' ? 'warning' : project.status === 'completed' ? 'primary' : 'neutral' %>">
-        <%= project.status.replace(/_/g, ' ') %>
-      </span>
+<%
+  const avatarColors = ['proj-avatar--blue','proj-avatar--green','proj-avatar--purple','proj-avatar--amber','proj-avatar--red'];
+  const avatarClass  = avatarColors[project.name.charCodeAt(0) % 5];
+  const initials     = project.name.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+  const statusLabel  = { active:'Active', on_hold:'On Hold', completed:'Completed', archived:'Archived' }[project.status] || project.status;
+  const statusBadge  = { active:'success', on_hold:'warning', completed:'primary', archived:'neutral' }[project.status] || 'neutral';
+  const statusColor  = { active:'var(--color-accent)', on_hold:'var(--color-warning)', completed:'var(--color-primary)', archived:'var(--color-text-muted)' }[project.status] || 'var(--color-border)';
+  const completePct  = taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0;
+  const _prb = { project_lead:'primary', manager:'primary', owner:'danger', quality_manager:'info', developer:'success', member:'success', viewer:'neutral' };
+  const _prl = { project_lead:'Manager', manager:'Manager', owner:'Owner', quality_manager:'Quality Manager', developer:'Member', member:'Member', viewer:'Viewer' };
+%>
+
+<!-- Project hero -->
+<div class="proj-show-hero" style="border-left-color: <%= statusColor %>;">
+  <div class="proj-show-hero-left">
+    <div class="proj-avatar proj-avatar--lg <%= avatarClass %>"><%= initials %></div>
+    <div class="proj-show-hero-info">
+      <div class="proj-show-title-row">
+        <h1 class="proj-show-name"><%= project.name %></h1>
+        <span class="badge badge--<%= statusBadge %>"><%= statusLabel %></span>
+      </div>
+      <% if (project.description) { %>
+        <p class="proj-show-desc"><%= project.description %></p>
+      <% } %>
+      <div class="proj-show-meta">
+        <span>
+          <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+          <%= project.members.length %> member<%= project.members.length !== 1 ? 's' : '' %>
+        </span>
+        <span>
+          <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+          Created <%= new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+        </span>
+        <% if (project.createdBy) { %>
+          <span>by <%= project.createdBy.fullName %></span>
+        <% } %>
+      </div>
     </div>
-    <% if (project.description) { %>
-      <p class="project-desc-hero"><%= project.description %></p>
-    <% } %>
   </div>
-  <% if (canManage) { %>
-    <div class="header-actions">
-      <a href="/projects/<%= project._id %>/edit" class="btn btn--outline btn--sm">Edit Project</a>
+  <div class="proj-show-hero-actions">
+    <a href="/projects" class="back-link" style="margin-bottom:0">← Projects</a>
+    <% if (canManage) { %>
+      <a href="/projects/<%= project._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
       <form method="POST" action="/projects/<%= project._id %>/delete" onsubmit="return confirm('Delete this project? This cannot be undone.')">
         <button type="submit" class="btn btn--danger btn--sm">Delete</button>
       </form>
-    </div>
-  <% } %>
+    <% } %>
+  </div>
 </div>
 
+<!-- Two-column panels -->
 <div class="project-panels">
 
-  <!-- Members -->
+  <!-- Members panel -->
   <div class="panel">
     <div class="panel-header">
-      <h3 class="panel-title">Members (<%= project.members.length %>)</h3>
+      <h3 class="panel-title">Members <span class="panel-title-count"><%= project.members.length %></span></h3>
     </div>
     <div class="panel-body no-padding">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Email</th>
+            <th>Member</th>
             <th>Role</th>
             <% if (canManage) { %><th></th><% } %>
           </tr>
@@ -42,23 +69,27 @@
           <% project.members.forEach(m => { %>
             <tr>
               <td>
-                <div class="member-name-cell">
-                  <div class="user-avatar user-avatar--sm"><%= m.user.fullName.charAt(0).toUpperCase() %></div>
-                  <%= m.user.fullName %>
-                  <% if (m.user._id.toString() === user._id.toString()) { %>
-                    <span class="self-tag">you</span>
-                  <% } %>
-                  <% if (m.user.accountStatus === 'pending') { %>
-                    <span class="badge badge--neutral" style="font-size:0.7rem;">pending</span>
-                  <% } %>
+                <div class="user-name-cell">
+                  <div class="user-avatar user-avatar--sm user-avatar--<%= m.user.accountStatus %>">
+                    <%= m.user.fullName.charAt(0).toUpperCase() %>
+                  </div>
+                  <div class="user-cell-info">
+                    <span class="user-table-name">
+                      <%= m.user.fullName %>
+                      <% if (m.user._id.toString() === user._id.toString()) { %><span class="self-tag">(you)</span><% } %>
+                    </span>
+                    <span class="user-cell-email">
+                      <%= m.user.email %>
+                      <% if (m.user.accountStatus === 'pending') { %>
+                        <span class="badge badge--neutral" style="font-size:0.65rem;padding:0.1rem 0.35rem;margin-left:0.25rem;">pending</span>
+                      <% } %>
+                    </span>
+                  </div>
                 </div>
               </td>
-              <td class="text-secondary"><%= m.user.email %></td>
               <td>
-                <% const _prb = { project_lead:'primary', manager:'primary', owner:'danger', quality_manager:'info', developer:'success', member:'success', viewer:'neutral' }; %>
-                <% const _prl = { project_lead:'Manager', manager:'Manager', owner:'Owner', quality_manager:'Quality Manager', developer:'Member', member:'Member', viewer:'Viewer' }; %>
                 <span class="badge badge--<%= _prb[m.role] || 'neutral' %>">
-                  <%= _prl[m.role] || m.role.replace(/_/g, ' ') %>
+                  <%= _prl[m.role] || m.role.replace(/_/g,' ') %>
                 </span>
               </td>
               <% if (canManage) { %>
@@ -67,7 +98,9 @@
                   <% if (!isOnlyLead) { %>
                     <form method="POST" action="/projects/<%= project._id %>/members/remove" class="inline-form">
                       <input type="hidden" name="userId" value="<%= m.user._id %>" />
-                      <button type="submit" class="btn btn--sm btn--ghost text-danger" onclick="return confirm('Remove this member?')">Remove</button>
+                      <button type="submit" class="proj-edit-btn text-danger" onclick="return confirm('Remove this member?')" title="Remove member">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                      </button>
                     </form>
                   <% } %>
                 </td>
@@ -87,7 +120,6 @@
           <button type="button" class="tab-toggle-btn" onclick="switchMemberTab('invite')">Invite by Email</button>
         </div>
 
-        <!-- Tab: existing user -->
         <div id="tab-existing">
           <% if (allUsers.length > 0) { %>
             <form method="POST" action="/projects/<%= project._id %>/members" class="add-member-form">
@@ -110,7 +142,6 @@
           <% } %>
         </div>
 
-        <!-- Tab: invite by email -->
         <div id="tab-invite" style="display:none;">
           <form method="POST" action="/projects/<%= project._id %>/members/invite" class="form-stack" style="margin-top:0.75rem;">
             <div class="form-group">
@@ -149,38 +180,66 @@
     <% } %>
   </div>
 
-  <!-- Tasks -->
-  <div class="panel">
-    <div class="panel-header">
-      <h3 class="panel-title">Tasks</h3>
-      <div style="display:flex;gap:.5rem">
-        <a href="/projects/<%= project._id %>/tasks" class="btn btn--sm btn--outline">List</a>
-        <a href="/projects/<%= project._id %>/kanban" class="btn btn--sm btn--primary">Kanban</a>
-      </div>
-    </div>
-    <div class="panel-body">
-      <div class="task-stats-mini">
-        <div class="task-stat-mini">
-          <span class="task-stat-mini-value"><%= taskStats.total %></span>
-          <span class="task-stat-mini-label">Total</span>
-        </div>
-        <div class="task-stat-mini task-stat-mini--primary">
-          <span class="task-stat-mini-value"><%= taskStats.inProgress %></span>
-          <span class="task-stat-mini-label">In Progress</span>
-        </div>
-        <div class="task-stat-mini task-stat-mini--success">
-          <span class="task-stat-mini-value"><%= taskStats.completed %></span>
-          <span class="task-stat-mini-label">Completed</span>
-        </div>
-        <div class="task-stat-mini task-stat-mini--danger">
-          <span class="task-stat-mini-value"><%= taskStats.blocked %></span>
-          <span class="task-stat-mini-label">Blocked</span>
+  <!-- Right column -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+    <!-- Tasks panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3 class="panel-title">Tasks</h3>
+        <div style="display:flex;gap:0.5rem;">
+          <a href="/projects/<%= project._id %>/tasks" class="btn btn--sm btn--outline">List</a>
+          <a href="/projects/<%= project._id %>/kanban" class="btn btn--sm btn--primary">Kanban</a>
         </div>
       </div>
-      <% if (taskStats.total === 0) { %>
-        <p class="empty-state" style="padding-top:0">No tasks yet. Open the task list to create one.</p>
-      <% } %>
+      <div class="panel-body">
+        <% if (taskStats.total > 0) { %>
+          <div class="task-progress-bar-wrap">
+            <div class="task-progress-bar-fill" style="width:<%= completePct %>%;"></div>
+          </div>
+          <p class="task-progress-label"><%= completePct %>% complete &mdash; <%= taskStats.completed %> of <%= taskStats.total %> tasks done</p>
+        <% } %>
+        <div class="task-stats-mini">
+          <div class="task-stat-mini">
+            <span class="task-stat-mini-value"><%= taskStats.total %></span>
+            <span class="task-stat-mini-label">Total</span>
+          </div>
+          <div class="task-stat-mini task-stat-mini--primary">
+            <span class="task-stat-mini-value"><%= taskStats.inProgress %></span>
+            <span class="task-stat-mini-label">In Progress</span>
+          </div>
+          <div class="task-stat-mini task-stat-mini--success">
+            <span class="task-stat-mini-value"><%= taskStats.completed %></span>
+            <span class="task-stat-mini-label">Completed</span>
+          </div>
+          <div class="task-stat-mini task-stat-mini--danger">
+            <span class="task-stat-mini-value"><%= taskStats.blocked %></span>
+            <span class="task-stat-mini-label">Blocked</span>
+          </div>
+        </div>
+        <% if (taskStats.total === 0) { %>
+          <p class="empty-state" style="padding-top:0.5rem;">No tasks yet. <a href="/projects/<%= project._id %>/tasks/new" class="subtle-link">Create the first one.</a></p>
+        <% } %>
+      </div>
     </div>
+
+    <!-- Project details panel -->
+    <div class="panel">
+      <div class="panel-header"><h3 class="panel-title">Project Details</h3></div>
+      <div class="panel-body">
+        <dl class="detail-list">
+          <dt>Status</dt>
+          <dd><span class="badge badge--<%= statusBadge %>"><%= statusLabel %></span></dd>
+          <% if (project.createdBy) { %>
+            <dt>Created by</dt><dd><%= project.createdBy.fullName %></dd>
+          <% } %>
+          <dt>Created on</dt>
+          <dd><%= new Date(project.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></dd>
+          <dt>Members</dt><dd><%= project.members.length %></dd>
+        </dl>
+      </div>
+    </div>
+
   </div>
 
 </div>
