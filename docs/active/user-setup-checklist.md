@@ -102,25 +102,27 @@ Start Command: npm start
 
 ## 8. Environment Variables
 
-Fill these values:
+Fill these values (see `.env.example` in the repo root):
 
 ```env
-APP_NAME=
-APP_ENV=
-PORT=
-BASE_URL=
+APP_NAME=HelloTasks
+APP_ENV=production
+PORT=3000
+APP_URL=https://hellotasks.online
 
 MONGO_URI=
 SESSION_SECRET=
 
 SUPABASE_URL=
-SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_STORAGE_BUCKET=
+SUPABASE_STORAGE_BUCKET=attachments
 
 RESEND_API_KEY=
-EMAIL_FROM=
+EMAIL_FROM=noreply@hellotasks.online
 
-CLOUDFLARE_SITE_KEY=
-CLOUDFLARE_SECRET_KEY=
+SEED_ADMIN_EMAIL=
+SEED_ADMIN_PASSWORD=
+
+CLOUDFLARE_TURNSTILE_SITE_KEY=
+CLOUDFLARE_TURNSTILE_SECRET_KEY=
 ```

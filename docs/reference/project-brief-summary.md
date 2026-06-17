@@ -1,62 +1,52 @@
-# 23 - Project Bootstrap Output Template
+# Project Brief Summary
 
-After the guided intake, the AI should generate a bootstrap output.
+## HelloTasks
 
-## Project Bootstrap Output
+**Slug:** hellotasks
+**Domain:** hellotasks.online
+**Status:** MVP complete — ready for deployment
 
-### Project Name
+### Description
 
-[Name]
+Private task management tool for 4HProjects and the Hello Ecosystem. Organizes tasks, team assignments, QA review, file uploads, and project reporting in one workflow.
 
-### Project Slug
-
-[slug]
-
-### Approved Stack
+### Stack
 
 ```txt
-Node.js
-Express
-EJS
-Vanilla JavaScript
-Custom CSS
-MongoDB
-Mongoose
-MongoDB Auth
-bcrypt
-express-session
-connect-mongo
-Supabase Storage
-multer
-sharp
-Resend
-Render
-Cloudflare
+Backend:      Node.js + Express
+Views:        EJS + express-ejs-layouts
+Frontend:     Vanilla JavaScript + Custom CSS
+Database:     MongoDB Atlas + Mongoose
+Auth:         Custom MongoDB auth (bcrypt + express-session + connect-mongo)
+Files:        Supabase Storage (WebP via multer + sharp)
+Email:        Resend
+Scheduler:    node-cron (due date reminders)
+Hosting:      Render
+DNS/Security: Cloudflare + Turnstile
 ```
 
 ### Critical Rules
 
-```txt
-MongoDB is used for authentication.
-Supabase Auth is not used.
-Supabase is used for storage and selected relational support.
-```
+- MongoDB is used for authentication. Supabase Auth is not used.
+- Supabase is used for file storage only.
+- No React, Vue, Angular, TypeScript, Tailwind, or Bootstrap.
 
 ### Required Services
 
 | Service | Purpose | Status |
 |---|---|---|
-| GitHub | Repository | Pending |
-| MongoDB Atlas | Auth and app database | Pending |
-| Supabase | Storage | Pending |
-| Resend | Email | Pending |
-| Render | Hosting | Pending |
-| Cloudflare | DNS and security | Pending |
-| Domain | Public URL | Pending |
+| GitHub | Repository | Done |
+| MongoDB Atlas | Auth and app database | Needs setup |
+| Supabase | Storage bucket `attachments` | Needs setup |
+| Resend | Email with verified domain | Needs setup |
+| Render | Node.js hosting | Needs setup |
+| Cloudflare | DNS, SSL, Turnstile | Needs setup |
+| hellotasks.online | Public domain | Needs DNS config |
 
 ### First Run Commands
 
 ```bash
 npm install
-npm run dev
+npm run dev        # local dev at http://localhost:3000
+npm run seed       # create first Super Admin (run once)
 ```

@@ -2,7 +2,7 @@
 
 **Brief Approved:** 2026-06-16
 **Build Started:** 2026-06-16
-**Current Phase:** UI Polish Complete — All pages redesigned 2026-06-18
+**Current Phase:** MVP Complete — All features built and pushed 2026-06-18
 
 ---
 
@@ -28,6 +28,7 @@
 | 7 | Resend Email Ready | Done | 2026-06-16 | 2026-06-16 |
 | 8 | First Run Verification | Done | 2026-06-16 | 2026-06-16 |
 | 9 | UI Polish | Done | 2026-06-17 | 2026-06-18 |
+| 10 | Feature Completion | Done | 2026-06-18 | 2026-06-18 |
 
 ---
 
@@ -252,14 +253,27 @@ Full redesign of every user-facing page. Consistent design patterns applied acro
 
 ---
 
+## Phase 10: Feature Completion
+
+**Status:** Done | **Started:** 2026-06-18 | **Completed:** 2026-06-18
+
+Post-UI-polish work completing all MVP-scoped features.
+
+- [x] Invite by Email — project show page two-tab toggle (existing user / invite by email), `inviteMember` controller creates pending user, sends project-specific invite email, pending badge shown in member table
+- [x] Task-event emails — assigned/reassigned, ready for review, returned for refinement, lead sign-off, completed — sent alongside existing in-app notifications
+- [x] Account activation email — sent when admin activates a pending user account
+- [x] Comment @mentions — `@Full Name` autocomplete dropdown in comment textarea (vanilla JS), backend parses mentions against project members, sends `task_mention` in-app notify + email; mentioned users excluded from generic task_comment notify
+- [x] Due date reminder — `node-cron` daily job at 08:00 server time; queries tasks due tomorrow (not completed/archived), emails active assignees via Resend
+- [x] Cloudflare Turnstile — `utils/turnstile.js` verify helper, wired into `postLogin`, `postRegister`, `postForgotPassword`; widget rendered on auth forms only when `CLOUDFLARE_TURNSTILE_SITE_KEY` is set; skipped silently in dev when keys are absent
+
+---
+
 ## Agent Build Summary
 
 ```
-Files Created: 25
-Features Implemented: Base app, full folder structure, Hello Ecosystem theme and layout,
-  MongoDB connection, MongoDB auth (register/login/logout/sessions/roles/middleware),
-  Supabase Storage service, Resend email service
-User Must Configure: SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env before running seed script
+MVP Status: Complete
+All phases 0–10 done as of 2026-06-18
+Next step: Deploy to Render, configure Cloudflare DNS
 How to Test: npm run dev → http://localhost:3000
-What Remains: See Post-Phase 8 list above
+Seed first admin: npm run seed (requires SEED_ADMIN_EMAIL + SEED_ADMIN_PASSWORD in .env)
 ```
