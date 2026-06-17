@@ -64,17 +64,24 @@
 }
 
 .auth-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .auth-logo {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius);
-  margin: 0 auto 1rem;
-  display: block;
+  flex-shrink: 0;
   object-fit: contain;
+}
+
+.auth-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
 }
 
 .auth-card-icon {
