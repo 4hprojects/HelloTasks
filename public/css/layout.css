@@ -254,7 +254,7 @@
   height: 16px;
   padding: 0 4px;
   border-radius: 9999px;
-  background-color: var(--color-danger, #e53e3e);
+  background-color: var(--color-danger);
   color: #fff;
   font-size: 10px;
   font-weight: 700;

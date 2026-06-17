@@ -9,7 +9,8 @@ async function getRegister(req, res) {
 }
 
 async function postRegister(req, res) {
-  const { fullName, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
+  const fullName = `${(firstName || '').trim()} ${(lastName || '').trim()}`.trim();
   try {
     const settings = await AppSetting.findById('app');
     if (settings && !settings.openRegistration) {
@@ -17,9 +18,17 @@ async function postRegister(req, res) {
       return res.redirect('/register');
     }
 
+    if (!fullName) {
+      req.session.flash = { error: 'Please enter your first and last name.' };
+      return res.redirect('/register');
+    }
     const existing = await User.findOne({ email });
     if (existing) {
       req.session.flash = { error: 'An account with that email already exists.' };
+      return res.redirect('/register');
+    }
+    if (password.length < 8) {
+      req.session.flash = { error: 'Password must be at least 8 characters.' };
       return res.redirect('/register');
     }
     const passwordHash = await bcrypt.hash(password, 12);

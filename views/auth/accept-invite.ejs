@@ -5,10 +5,6 @@
     <p class="auth-subtitle">Hi <%= invitedUser.fullName %>, set a password to activate your account</p>
   </div>
 
-  <% if (typeof flash !== 'undefined' && flash.error) { %>
-    <div class="alert alert--error"><%= flash.error %></div>
-  <% } %>
-
   <div class="auth-info">
     <span class="auth-info-label">Signing up as</span>
     <span class="auth-info-value"><%= invitedUser.email %></span>
@@ -16,30 +12,37 @@
 
   <form method="POST" action="/accept-invite/<%= token %>" class="auth-form" novalidate>
     <div class="form-group">
-      <label for="password" class="form-label">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-input"
-        required
-        minlength="8"
-        autocomplete="new-password"
-        placeholder="At least 8 characters"
-      />
+      <div class="form-float form-input-wrapper">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-input"
+          required
+          minlength="8"
+          autocomplete="new-password"
+          placeholder=" "
+        />
+        <%- include('../partials/password-toggle', { targetId: 'password' }) %>
+        <label for="password" class="form-label">Password</label>
+      </div>
     </div>
     <div class="form-group">
-      <label for="confirmPassword" class="form-label">Confirm Password</label>
-      <input
-        type="password"
-        id="confirmPassword"
-        name="confirmPassword"
-        class="form-input"
-        required
-        autocomplete="new-password"
-        placeholder="Repeat your password"
-      />
+      <div class="form-float form-input-wrapper">
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          class="form-input"
+          required
+          autocomplete="new-password"
+          placeholder=" "
+        />
+        <%- include('../partials/password-toggle', { targetId: 'confirmPassword' }) %>
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+      </div>
+      <span class="form-error confirm-password-error" style="display:none">Passwords do not match.</span>
     </div>
-    <button type="submit" class="btn btn--primary btn--full">Activate Account</button>
+    <button type="submit" class="btn btn--primary btn--full" data-loading-text="Activating account...">Activate Account</button>
   </form>
 </div>

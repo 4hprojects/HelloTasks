@@ -2,38 +2,43 @@
   <div class="auth-header">
     <div class="auth-logo">HT</div>
     <h1 class="auth-title">HelloTasks</h1>
-    <p class="auth-subtitle">Sign in to your account</p>
+    <p class="auth-subtitle">Welcome back</p>
   </div>
 
   <form method="POST" action="/login" class="auth-form" novalidate>
     <div class="form-group">
-      <label for="email" class="form-label">Email</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        class="form-input"
-        required
-        autocomplete="email"
-        placeholder="you@example.com"
-      />
+      <div class="form-float">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-input"
+          required
+          autocomplete="email"
+          placeholder=" "
+        />
+        <label for="email" class="form-label">Email</label>
+      </div>
     </div>
     <div class="form-group">
-      <label for="password" class="form-label">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-input"
-        required
-        autocomplete="current-password"
-        placeholder="••••••••"
-      />
+      <div class="form-float form-input-wrapper">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-input"
+          required
+          autocomplete="current-password"
+          placeholder=" "
+        />
+        <%- include('../partials/password-toggle', { targetId: 'password' }) %>
+        <label for="password" class="form-label">Password</label>
+      </div>
     </div>
     <div class="auth-forgot">
       <a href="/forgot-password">Forgot password?</a>
     </div>
-    <button type="submit" class="btn btn--primary btn--full">Sign In</button>
+    <button type="submit" class="btn btn--primary btn--full" data-loading-text="Signing in...">Sign In</button>
   </form>
 
   <p class="auth-footer">Don't have an account? <a href="/register">Create one</a></p>

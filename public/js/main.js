@@ -41,4 +41,42 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => alert.remove(), 300);
     }, 5000);
   });
+
+  // Password visibility toggles
+  document.querySelectorAll('.password-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      btn.querySelector('.icon-eye').style.display = show ? 'none' : '';
+      btn.querySelector('.icon-eye-off').style.display = show ? '' : 'none';
+    });
+  });
+
+  // Auth forms: confirm password validation + loading states
+  document.querySelectorAll('.auth-form').forEach((form) => {
+    const cpwInput = form.querySelector('#confirmPassword');
+    const cpwErr = form.querySelector('.confirm-password-error');
+
+    if (cpwInput && cpwErr) {
+      cpwInput.addEventListener('input', () => { cpwErr.style.display = 'none'; });
+    }
+
+    form.addEventListener('submit', (e) => {
+      const pw = form.querySelector('#password');
+      if (pw && cpwInput && pw.value !== cpwInput.value) {
+        e.preventDefault();
+        if (cpwErr) cpwErr.style.display = '';
+        cpwInput.focus();
+        return;
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      if (!btn || !btn.dataset.loadingText) return;
+      btn.textContent = btn.dataset.loadingText;
+      btn.disabled = true;
+    });
+  });
 });

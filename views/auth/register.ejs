@@ -6,44 +6,84 @@
   </div>
 
   <form method="POST" action="/register" class="auth-form" novalidate>
-    <div class="form-group">
-      <label for="fullName" class="form-label">Full Name</label>
-      <input
-        type="text"
-        id="fullName"
-        name="fullName"
-        class="form-input"
-        required
-        autocomplete="name"
-        placeholder="Your full name"
-      />
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-float">
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            class="form-input"
+            required
+            autocomplete="given-name"
+            placeholder=" "
+          />
+          <label for="firstName" class="form-label">First Name</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-float">
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            class="form-input"
+            required
+            autocomplete="family-name"
+            placeholder=" "
+          />
+          <label for="lastName" class="form-label">Last Name</label>
+        </div>
+      </div>
     </div>
     <div class="form-group">
-      <label for="email" class="form-label">Email</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        class="form-input"
-        required
-        autocomplete="email"
-        placeholder="you@example.com"
-      />
+      <div class="form-float">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-input"
+          required
+          autocomplete="email"
+          placeholder=" "
+        />
+        <label for="email" class="form-label">Email</label>
+      </div>
     </div>
     <div class="form-group">
-      <label for="password" class="form-label">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-input"
-        required
-        autocomplete="new-password"
-        placeholder="Min. 8 characters"
-        minlength="8"
-      />
+      <div class="form-float form-input-wrapper">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-input"
+          required
+          minlength="8"
+          autocomplete="new-password"
+          placeholder=" "
+        />
+        <%- include('../partials/password-toggle', { targetId: 'password' }) %>
+        <label for="password" class="form-label">Password</label>
+      </div>
+      <span class="form-hint">Min. 8 characters</span>
     </div>
-    <button type="submit" class="btn btn--primary btn--full">Create Account</button>
+    <div class="form-group">
+      <div class="form-float form-input-wrapper">
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          class="form-input"
+          required
+          autocomplete="new-password"
+          placeholder=" "
+        />
+        <%- include('../partials/password-toggle', { targetId: 'confirmPassword' }) %>
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+      </div>
+      <span class="form-error confirm-password-error" style="display:none">Passwords do not match.</span>
+    </div>
+    <button type="submit" class="btn btn--primary btn--full" data-loading-text="Creating account...">Create Account</button>
   </form>
 
   <p class="auth-footer">Already have an account? <a href="/login">Sign in</a></p>
