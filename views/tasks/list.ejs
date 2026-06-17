@@ -11,34 +11,36 @@
 
 <form method="GET" action="/projects/<%= project._id %>/tasks" class="filter-bar">
   <input type="text" name="search" class="form-input filter-search" placeholder="Search tasks…" value="<%= filters.search %>" />
-  <select name="status" class="form-select filter-select">
+  <select name="status" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All statuses</option>
     <% Object.entries(statusLabels).filter(([k]) => k !== 'archived').forEach(([k, v]) => { %>
       <option value="<%= k %>" <%= filters.status === k ? 'selected' : '' %>><%= v %></option>
     <% }) %>
   </select>
-  <select name="priority" class="form-select filter-select">
+  <select name="priority" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All priorities</option>
     <option value="critical" <%= filters.priority === 'critical' ? 'selected' : '' %>>Critical</option>
     <option value="high" <%= filters.priority === 'high' ? 'selected' : '' %>>High</option>
     <option value="medium" <%= filters.priority === 'medium' ? 'selected' : '' %>>Medium</option>
     <option value="low" <%= filters.priority === 'low' ? 'selected' : '' %>>Low</option>
   </select>
-  <select name="assigneeId" class="form-select filter-select">
+  <select name="assigneeId" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All assignees</option>
     <option value="unassigned" <%= filters.assigneeId === 'unassigned' ? 'selected' : '' %>>Unassigned</option>
     <% assignableUsers.forEach(u => { %>
       <option value="<%= u._id %>" <%= filters.assigneeId === u._id.toString() ? 'selected' : '' %>><%= u.fullName %></option>
     <% }) %>
   </select>
-  <select name="sort" class="form-select filter-select">
+  <select name="sort" class="form-select filter-select" onchange="this.form.submit()">
     <option value="newest" <%= filters.sort === 'newest' || !filters.sort ? 'selected' : '' %>>Newest first</option>
     <option value="due_asc" <%= filters.sort === 'due_asc' ? 'selected' : '' %>>Due date</option>
     <option value="priority" <%= filters.sort === 'priority' ? 'selected' : '' %>>Priority</option>
     <option value="status" <%= filters.sort === 'status' ? 'selected' : '' %>>Status</option>
   </select>
-  <button type="submit" class="btn btn--outline btn--sm">Filter</button>
-  <a href="/projects/<%= project._id %>/tasks" class="btn btn--ghost btn--sm">Clear</a>
+  <button type="submit" class="btn btn--outline btn--sm">Search</button>
+  <% if (filters.search || filters.status || filters.priority || filters.assigneeId) { %>
+    <a href="/projects/<%= project._id %>/tasks" class="btn btn--ghost btn--sm">Clear</a>
+  <% } %>
 </form>
 
 <% if (tasks.length === 0) { %>
@@ -62,7 +64,10 @@
             <tr>
               <% if (!task.visible) { %>
                 <td colspan="5" class="confidential-row">
-                  <span class="lock-icon">🔒</span> Confidential task
+                  <span class="lock-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="13" height="13" aria-hidden="true"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                  </span>
+                  Confidential task
                 </td>
                 <td></td>
               <% } else { %>

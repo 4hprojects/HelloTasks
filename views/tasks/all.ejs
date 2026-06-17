@@ -4,38 +4,40 @@
 
 <form method="GET" action="/tasks" class="filter-bar">
   <input type="text" name="search" class="form-input filter-search" placeholder="Search tasks…" value="<%= filters.search %>" />
-  <select name="status" class="form-select filter-select">
+  <select name="status" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All statuses</option>
     <% Object.entries(statusLabels).filter(([k]) => k !== 'archived').forEach(([k, v]) => { %>
       <option value="<%= k %>" <%= filters.status === k ? 'selected' : '' %>><%= v %></option>
     <% }) %>
   </select>
-  <select name="priority" class="form-select filter-select">
+  <select name="priority" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All priorities</option>
     <option value="critical" <%= filters.priority === 'critical' ? 'selected' : '' %>>Critical</option>
     <option value="high" <%= filters.priority === 'high' ? 'selected' : '' %>>High</option>
     <option value="medium" <%= filters.priority === 'medium' ? 'selected' : '' %>>Medium</option>
     <option value="low" <%= filters.priority === 'low' ? 'selected' : '' %>>Low</option>
   </select>
-  <select name="projectId" class="form-select filter-select">
+  <select name="projectId" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All projects</option>
     <% accessibleProjects.forEach(p => { %>
       <option value="<%= p._id %>" <%= filters.projectId === p._id.toString() ? 'selected' : '' %>><%= p.name %></option>
     <% }) %>
   </select>
-  <select name="assigneeId" class="form-select filter-select">
+  <select name="assigneeId" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All assignees</option>
     <option value="mine" <%= filters.assigneeId === 'mine' ? 'selected' : '' %>>Assigned to me</option>
     <option value="unassigned" <%= filters.assigneeId === 'unassigned' ? 'selected' : '' %>>Unassigned</option>
   </select>
-  <select name="sort" class="form-select filter-select">
+  <select name="sort" class="form-select filter-select" onchange="this.form.submit()">
     <option value="newest" <%= !filters.sort || filters.sort === 'newest' ? 'selected' : '' %>>Last updated</option>
     <option value="due_asc" <%= filters.sort === 'due_asc' ? 'selected' : '' %>>Due date</option>
     <option value="priority" <%= filters.sort === 'priority' ? 'selected' : '' %>>Priority</option>
     <option value="status" <%= filters.sort === 'status' ? 'selected' : '' %>>Status</option>
   </select>
-  <button type="submit" class="btn btn--outline btn--sm">Filter</button>
-  <a href="/tasks" class="btn btn--ghost btn--sm">Clear</a>
+  <button type="submit" class="btn btn--outline btn--sm">Search</button>
+  <% if (filters.search || filters.status || filters.priority || filters.projectId || filters.assigneeId) { %>
+    <a href="/tasks" class="btn btn--ghost btn--sm">Clear</a>
+  <% } %>
 </form>
 
 <% if (tasks.length === 0) { %>
