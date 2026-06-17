@@ -1,51 +1,68 @@
-<div class="form-page">
-  <div class="form-page-header">
-    <a href="/projects" class="back-link">← Projects</a>
-    <h2>New Project</h2>
+<div class="task-form-header">
+  <a href="/projects" class="back-link">← Projects</a>
+  <div class="task-form-header-inner">
+    <div class="task-form-header-icon">
+      <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+    </div>
+    <div>
+      <h1 class="task-form-title">New Project</h1>
+      <p class="task-form-subtitle">Hello Ecosystem</p>
+    </div>
   </div>
+</div>
 
-  <% if (errors && errors.length) { %>
-    <% errors.forEach(e => { %>
-      <div class="alert alert--error"><span><%= e %></span></div>
-    <% }) %>
-  <% } %>
+<% if (errors && errors.length) { %>
+  <% errors.forEach(e => { %><div class="alert alert--error"><span><%= e %></span></div><% }) %>
+<% } %>
 
-  <div class="panel">
-    <div class="panel-body">
-      <form method="POST" action="/projects/new" class="form-stack">
+<form method="POST" action="/projects/new" class="task-form-layout">
+
+  <!-- Main fields -->
+  <div class="task-form-main">
+    <div class="panel">
+      <div class="panel-header"><h3 class="panel-title">Project Details</h3></div>
+      <div class="panel-body form-stack">
 
         <div class="form-group">
           <label for="name" class="form-label">Project Name <span class="required">*</span></label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            class="form-input"
-            required
-            placeholder="e.g. HelloTasks Redesign"
-            value="<%= typeof body !== 'undefined' && body.name ? body.name : '' %>"
-          />
+          <input type="text" id="name" name="name" class="form-input" required placeholder="e.g. HelloTasks Redesign" value="<%= typeof body !== 'undefined' && body.name ? body.name : '' %>" />
         </div>
 
         <div class="form-group">
           <label for="description" class="form-label">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            class="form-textarea"
-            rows="3"
-            placeholder="Brief description of the project..."
-          ><%= typeof body !== 'undefined' && body.description ? body.description : '' %></textarea>
+          <textarea id="description" name="description" class="form-textarea" rows="4" placeholder="Brief description of the project…"><%= typeof body !== 'undefined' && body.description ? body.description : '' %></textarea>
         </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="task-form-sidebar">
+    <div class="panel">
+      <div class="panel-header"><h3 class="panel-title">Settings</h3></div>
+      <div class="panel-body form-stack">
 
         <div class="form-group">
           <label for="status" class="form-label">Status</label>
           <select id="status" name="status" class="form-select">
-            <option value="active" <%= typeof body !== 'undefined' && body.status === 'active' ? 'selected' : '' %>>Active</option>
-            <option value="on_hold" <%= typeof body !== 'undefined' && body.status === 'on_hold' ? 'selected' : '' %>>On Hold</option>
+            <option value="active"    <%= typeof body !== 'undefined' && body.status === 'active'    ? 'selected' : '' %>>Active</option>
+            <option value="on_hold"   <%= typeof body !== 'undefined' && body.status === 'on_hold'   ? 'selected' : '' %>>On Hold</option>
             <option value="completed" <%= typeof body !== 'undefined' && body.status === 'completed' ? 'selected' : '' %>>Completed</option>
-            <option value="archived" <%= typeof body !== 'undefined' && body.status === 'archived' ? 'selected' : '' %>>Archived</option>
+            <option value="archived"  <%= typeof body !== 'undefined' && body.status === 'archived'  ? 'selected' : '' %>>Archived</option>
           </select>
+        </div>
+
+        <!-- Live preview -->
+        <div class="proj-form-preview">
+          <p class="proj-form-preview-label">Card preview</p>
+          <div class="proj-form-preview-card">
+            <div class="proj-form-preview-top">
+              <div id="previewAvatar" class="proj-avatar proj-avatar--lg proj-avatar--blue">?</div>
+              <span id="previewStatus" class="badge badge--success">Active</span>
+            </div>
+            <p id="previewName" class="proj-form-preview-name">Project Name</p>
+          </div>
         </div>
 
         <div class="form-actions">
@@ -53,7 +70,38 @@
           <a href="/projects" class="btn btn--ghost">Cancel</a>
         </div>
 
-      </form>
+      </div>
     </div>
-  </div>
-</div>
+  </aside>
+
+</form>
+
+<script>
+(function() {
+  var avatarColors = ['proj-avatar--blue','proj-avatar--green','proj-avatar--purple','proj-avatar--amber','proj-avatar--red'];
+  var statusBadgeMap = { active:'success', on_hold:'warning', completed:'primary', archived:'neutral' };
+  var statusLabelMap = { active:'Active', on_hold:'On Hold', completed:'Completed', archived:'Archived' };
+
+  function updatePreview() {
+    var name   = document.getElementById('name').value.trim();
+    var status = document.getElementById('status').value;
+
+    var words    = name.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean);
+    var initials = words.slice(0,2).map(function(w){ return w[0].toUpperCase(); }).join('') || '?';
+    var colorClass = name ? avatarColors[name.charCodeAt(0) % 5] : 'proj-avatar--blue';
+
+    var avatarEl = document.getElementById('previewAvatar');
+    avatarEl.textContent = initials;
+    avatarEl.className = 'proj-avatar proj-avatar--lg ' + colorClass;
+
+    document.getElementById('previewName').textContent = name || 'Project Name';
+
+    var badge = document.getElementById('previewStatus');
+    badge.textContent = statusLabelMap[status] || status;
+    badge.className   = 'badge badge--' + (statusBadgeMap[status] || 'neutral');
+  }
+
+  document.getElementById('name').addEventListener('input', updatePreview);
+  document.getElementById('status').addEventListener('change', updatePreview);
+})();
+</script>
