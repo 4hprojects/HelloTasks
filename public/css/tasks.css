@@ -473,10 +473,13 @@
   flex: 1;
   min-width: 200px;
   max-width: 320px;
+  width: auto;
 }
 
 .filter-select {
   min-width: 140px;
+  max-width: 200px;
+  width: auto;
   flex-shrink: 0;
 }
 

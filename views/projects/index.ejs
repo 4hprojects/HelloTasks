@@ -12,10 +12,10 @@
   <input type="text" name="search" class="form-input filter-search" placeholder="Search projects…" value="<%= filters.search %>" />
   <select name="status" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All statuses</option>
-    <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
-    <option value="on_hold" <%= filters.status === 'on_hold' ? 'selected' : '' %>>On Hold</option>
+    <option value="active"    <%= filters.status === 'active'    ? 'selected' : '' %>>Active</option>
+    <option value="on_hold"   <%= filters.status === 'on_hold'   ? 'selected' : '' %>>On Hold</option>
     <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Completed</option>
-    <option value="archived" <%= filters.status === 'archived' ? 'selected' : '' %>>Archived</option>
+    <option value="archived"  <%= filters.status === 'archived'  ? 'selected' : '' %>>Archived</option>
   </select>
   <button type="submit" class="btn btn--outline btn--sm">Search</button>
   <% if (filters.search || filters.status) { %>
@@ -26,34 +26,55 @@
 <% if (projects.length === 0) { %>
   <div class="panel">
     <div class="panel-body">
-      <p class="empty-state"><% if (filters.search || filters.status) { %>No projects match your filters.<% } else { %>No projects yet. Create one to get started.<% } %></p>
+      <div class="proj-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v8.25"/></svg>
+        <p><% if (filters.search || filters.status) { %>No projects match your filters.<% } else { %>No projects yet. <a href="/projects/new" class="subtle-link">Create one to get started.</a><% } %></p>
+      </div>
     </div>
   </div>
 <% } else { %>
+
+  <p class="results-count"><%= projects.length %> project<%= projects.length !== 1 ? 's' : '' %></p>
+
   <div class="project-grid">
     <% projects.forEach(project => { %>
+      <%
+        const avatarColors = ['proj-avatar--blue','proj-avatar--green','proj-avatar--purple','proj-avatar--amber','proj-avatar--red'];
+        const avatarClass  = avatarColors[project.name.charCodeAt(0) % 5];
+        const initials     = project.name.replace(/[^A-Za-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+        const statusLabel  = { active: 'Active', on_hold: 'On Hold', completed: 'Completed', archived: 'Archived' }[project.status] || project.status;
+        const statusBadge  = { active: 'success', on_hold: 'warning', completed: 'primary', archived: 'neutral' }[project.status] || 'neutral';
+        const canEdit      = ['super_admin','system_admin'].includes(user.globalRole) || user.systemRole === 'system_admin' || project.members.some(m => m.user.toString() === user._id.toString() && ['project_lead','manager','owner'].includes(m.role));
+      %>
       <div class="project-card project-card--<%= project.status %>">
-        <div class="project-card-header">
-          <div>
-            <a href="/projects/<%= project._id %>" class="project-name"><%= project.name %></a>
-            <span class="badge badge--<%= project.status === 'active' ? 'success' : project.status === 'on_hold' ? 'warning' : project.status === 'completed' ? 'primary' : 'neutral' %>">
-              <%= project.status.replace(/_/g, ' ') %>
-            </span>
-          </div>
+
+        <div class="proj-card-top">
+          <div class="proj-avatar <%= avatarClass %>"><%= initials %></div>
+          <span class="badge badge--<%= statusBadge %>"><%= statusLabel %></span>
         </div>
-        <% if (project.description) { %>
-          <p class="project-desc"><%= project.description %></p>
-        <% } %>
-        <div class="project-meta">
-          <span><%= project.members.length %> member<%= project.members.length !== 1 ? 's' : '' %></span>
-          <span>Created <%= new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
-        </div>
-        <div class="project-actions">
-          <a href="/projects/<%= project._id %>" class="btn btn--sm btn--outline">View</a>
-          <% if (['super_admin','system_admin'].includes(user.globalRole) || user.systemRole === 'system_admin' || project.members.some(m => m.user.toString() === user._id.toString() && ['project_lead','manager','owner'].includes(m.role))) { %>
-            <a href="/projects/<%= project._id %>/edit" class="btn btn--sm btn--ghost">Edit</a>
+
+        <div class="proj-card-body">
+          <a href="/projects/<%= project._id %>" class="project-name"><%= project.name %></a>
+          <% if (project.description) { %>
+            <p class="project-desc"><%= project.description %></p>
           <% } %>
         </div>
+
+        <div class="proj-card-footer">
+          <span class="proj-meta-text">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+            <%= project.members.length %> member<%= project.members.length !== 1 ? 's' : '' %>
+          </span>
+          <div class="proj-card-actions">
+            <% if (canEdit) { %>
+              <a href="/projects/<%= project._id %>/edit" class="proj-edit-btn" title="Edit project">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+              </a>
+            <% } %>
+            <a href="/projects/<%= project._id %>" class="btn btn--sm btn--primary">View →</a>
+          </div>
+        </div>
+
       </div>
     <% }) %>
   </div>
