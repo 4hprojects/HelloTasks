@@ -2,13 +2,19 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { notify } = require('../utils/notify');
 const { sendEmail } = require('../services/emailService');
+const { ROLE_LABELS: ROLE_LABELS_MAP } = require('../utils/roles');
 
+// Labels for every valid globalRole value (legacy + canonical)
 const ROLE_LABELS = {
-  super_admin: 'Super Admin',
-  project_lead: 'Project Lead',
+  system_admin:    'System Admin',
+  super_admin:     'System Admin',
+  owner:           'Owner',
+  manager:         'Manager',
+  project_lead:    'Manager',
   quality_manager: 'Quality Manager',
-  developer: 'Developer',
-  viewer: 'Viewer'
+  member:          'Member',
+  developer:       'Member',
+  viewer:          'Viewer',
 };
 
 async function listUsers(req, res) {
@@ -57,7 +63,7 @@ async function updateUser(req, res) {
   }
 
   const wasActive = user.accountStatus === 'active';
-  const validRoles = ['super_admin', 'project_lead', 'quality_manager', 'developer', 'viewer'];
+  const validRoles = ['system_admin', 'super_admin', 'owner', 'manager', 'project_lead', 'quality_manager', 'member', 'developer', 'viewer'];
   const validStatuses = ['pending', 'active', 'suspended'];
 
   if (globalRole && validRoles.includes(globalRole)) user.globalRole = globalRole;

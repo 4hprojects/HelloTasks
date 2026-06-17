@@ -3,7 +3,7 @@
     <h2 class="page-subtitle">All Projects</h2>
     <p class="page-desc">Manage and track your team's projects.</p>
   </div>
-  <% if (user.globalRole === 'super_admin' || user.globalRole === 'project_lead') { %>
+  <% if (['super_admin','system_admin','owner','manager','project_lead'].includes(user.globalRole) || user.systemRole === 'system_admin') { %>
     <a href="/projects/new" class="btn btn--primary">+ New Project</a>
   <% } %>
 </div>
@@ -50,7 +50,7 @@
         </div>
         <div class="project-actions">
           <a href="/projects/<%= project._id %>" class="btn btn--sm btn--outline">View</a>
-          <% if (user.globalRole === 'super_admin' || project.members.some(m => m.user.toString() === user._id.toString() && m.role === 'project_lead')) { %>
+          <% if (['super_admin','system_admin'].includes(user.globalRole) || user.systemRole === 'system_admin' || project.members.some(m => m.user.toString() === user._id.toString() && ['project_lead','manager','owner'].includes(m.role))) { %>
             <a href="/projects/<%= project._id %>/edit" class="btn btn--sm btn--ghost">Edit</a>
           <% } %>
         </div>

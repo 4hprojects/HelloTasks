@@ -12,7 +12,7 @@
     <% if (canEdit) { %>
       <div class="header-actions">
         <a href="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
-        <% if (['super_admin', 'project_lead'].includes(projectRole)) { %>
+        <% if (['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole)) { %>
           <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/archive" class="inline-form" onsubmit="return confirm('Archive this task?')">
             <button type="submit" class="btn btn--ghost btn--sm">Archive</button>
           </form>
@@ -158,7 +158,7 @@
                     <a href="<%= f.publicUrl %>" target="_blank" rel="noopener noreferrer" class="file-name"><%= f.originalName %></a>
                     <span class="file-details"><%= formatSize(f.size) %> · Uploaded by <%= f.uploadedBy.fullName %> · <%= new Date(f.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
                   </div>
-                  <% const canDeleteFile = f.uploadedBy._id.toString() === user._id.toString() || ['super_admin', 'project_lead'].includes(projectRole); %>
+                  <% const canDeleteFile = f.uploadedBy._id.toString() === user._id.toString() || ['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole); %>
                   <% if (canDeleteFile) { %>
                     <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files/<%= f._id %>/delete" class="inline-form" onsubmit="return confirm('Delete this file?')">
                       <button type="submit" class="btn btn--ghost btn--sm text-danger">Delete</button>
@@ -192,7 +192,7 @@
                   <div class="user-avatar user-avatar--sm"><%= c.author.fullName.charAt(0).toUpperCase() %></div>
                   <span class="comment-author"><%= c.author.fullName %></span>
                   <span class="comment-date"><%= new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
-                  <% const canDeleteComment = c.author._id.toString() === user._id.toString() || ['super_admin', 'project_lead'].includes(projectRole); %>
+                  <% const canDeleteComment = c.author._id.toString() === user._id.toString() || ['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole); %>
                   <% if (canDeleteComment) { %>
                     <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments/<%= c._id %>/delete" class="inline-form comment-delete-form" onsubmit="return confirm('Delete this comment?')">
                       <button type="submit" class="btn--comment-delete" aria-label="Delete comment">×</button>

@@ -23,9 +23,12 @@
         <div class="form-group">
           <label for="globalRole" class="form-label">Role</label>
           <select id="globalRole" name="globalRole" class="form-select">
-            <% Object.entries(roleLabels).forEach(([value, label]) => { %>
-              <option value="<%= value %>" <%= value === 'developer' ? 'selected' : '' %>><%= label %></option>
-            <% }) %>
+            <option value="member"          selected>Member</option>
+            <option value="quality_manager">Quality Manager</option>
+            <option value="manager">Manager</option>
+            <option value="owner">Owner</option>
+            <option value="system_admin">System Admin</option>
+            <option value="viewer">Viewer</option>
           </select>
         </div>
         <div class="form-actions">

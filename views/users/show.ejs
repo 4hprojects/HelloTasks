@@ -17,7 +17,8 @@
       <dl class="detail-list">
         <dt>Role</dt>
         <dd>
-          <span class="badge badge--<%= targetUser.globalRole === 'super_admin' ? 'danger' : targetUser.globalRole === 'project_lead' ? 'primary' : targetUser.globalRole === 'quality_manager' ? 'info' : 'neutral' %>">
+          <% const _rb2 = { system_admin:'danger', super_admin:'danger', owner:'danger', manager:'primary', project_lead:'primary', quality_manager:'info', member:'success', developer:'success', viewer:'neutral' }; %>
+          <span class="badge badge--<%= _rb2[targetUser.globalRole] || 'neutral' %>">
             <%= roleLabels[targetUser.globalRole] || targetUser.globalRole %>
           </span>
         </dd>
@@ -39,11 +40,15 @@
         <div class="form-group">
           <label class="form-label" for="globalRole">Global Role</label>
           <select id="globalRole" name="globalRole" class="form-select">
-            <option value="super_admin" <%= targetUser.globalRole === 'super_admin' ? 'selected' : '' %>>Super Admin</option>
-            <option value="project_lead" <%= targetUser.globalRole === 'project_lead' ? 'selected' : '' %>>Project Lead</option>
+            <option value="system_admin"    <%= targetUser.globalRole === 'system_admin'    ? 'selected' : '' %>>System Admin</option>
+            <option value="owner"           <%= targetUser.globalRole === 'owner'           ? 'selected' : '' %>>Owner</option>
+            <option value="manager"         <%= targetUser.globalRole === 'manager'         ? 'selected' : '' %>>Manager</option>
             <option value="quality_manager" <%= targetUser.globalRole === 'quality_manager' ? 'selected' : '' %>>Quality Manager</option>
-            <option value="developer" <%= targetUser.globalRole === 'developer' ? 'selected' : '' %>>Developer</option>
-            <option value="viewer" <%= targetUser.globalRole === 'viewer' ? 'selected' : '' %>>Viewer</option>
+            <option value="member"          <%= targetUser.globalRole === 'member'          ? 'selected' : '' %>>Member</option>
+            <option value="viewer"          <%= targetUser.globalRole === 'viewer'          ? 'selected' : '' %>>Viewer</option>
+            <% if (['super_admin','project_lead','developer'].includes(targetUser.globalRole)) { %>
+              <option value="<%= targetUser.globalRole %>" selected><%= targetUser.globalRole.replace(/_/g,' ') %> (legacy — migrate)</option>
+            <% } %>
           </select>
         </div>
         <div class="form-group">

@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const { normalizeRole, isSystemAdmin } = require('../utils/roles');
 
 async function attachUser(req, res, next) {
   if (req.session && req.session.userId) {
@@ -27,10 +28,20 @@ function isAuthenticated(req, res, next) {
   res.redirect('/login');
 }
 
+/**
+ * checkRole(...roles) — accepts both legacy and canonical role names.
+ * Normalises the user's globalRole before checking, so old DB values
+ * (super_admin, project_lead, developer) work alongside new ones.
+ */
 function checkRole(...roles) {
+  // Normalise the allowed list so callers don't need to pass both old + new
+  const normalised = roles.map(normalizeRole);
   return (req, res, next) => {
     if (!req.user) return res.redirect('/login');
-    if (roles.includes(req.user.globalRole)) return next();
+    const userRole = normalizeRole(req.user.globalRole);
+    if (normalised.includes(userRole)) return next();
+    // system_admin passes any role check
+    if (isSystemAdmin(req.user)) return next();
     res.status(403).render('errors/403', { title: '403 Forbidden' });
   };
 }

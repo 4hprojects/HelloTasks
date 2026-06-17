@@ -1,23 +1,24 @@
 const Project = require('../models/Project');
 const Task = require('../models/Task');
+const { isSystemAdmin } = require('../utils/roles');
 
 async function requireProjectMember(req, res, next) {
   try {
     const project = await Project.findById(req.params.projectId || req.params.id)
-      .populate('members.user', 'fullName email globalRole');
+      .populate('members.user', 'fullName email globalRole accountStatus');
     if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
 
-    const isSuperAdmin = req.user.globalRole === 'super_admin';
+    const sysAdmin = isSystemAdmin(req.user);
     const memberEntry = project.members.find(
       m => m.user._id.toString() === req.user._id.toString()
     );
 
-    if (!isSuperAdmin && !memberEntry) {
+    if (!sysAdmin && !memberEntry) {
       return res.status(403).render('errors/403', { title: '403 Forbidden' });
     }
 
     req.project = project;
-    req.projectRole = isSuperAdmin ? 'super_admin' : memberEntry.role;
+    req.projectRole = sysAdmin ? 'system_admin' : memberEntry.role;
     next();
   } catch (err) {
     next(err);

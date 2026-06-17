@@ -6,56 +6,45 @@ const Project = require('../models/Project');
 const { formatSize } = require('./fileController');
 const { notify, notifyMany } = require('../utils/notify');
 
-// Status transitions per project role
+// Status transitions per project role (canonical + legacy aliases)
+const _managerTransitions = {
+  draft: ['assigned', 'in_progress', 'blocked'],
+  assigned: ['in_progress', 'draft', 'blocked'],
+  in_progress: ['ready_for_review', 'assigned', 'blocked'],
+  ready_for_review: ['returned_for_refinement', 'approved', 'blocked'],
+  returned_for_refinement: ['in_progress', 'ready_for_review'],
+  approved: ['completed'],
+  completed: [],
+  blocked: ['in_progress', 'assigned'],
+  archived: []
+};
+const _memberTransitions = {
+  draft: ['in_progress'],
+  assigned: ['in_progress'],
+  in_progress: ['ready_for_review', 'blocked'],
+  ready_for_review: [],
+  returned_for_refinement: ['in_progress', 'ready_for_review'],
+  approved: [],
+  completed: [],
+  blocked: ['in_progress'],
+  archived: []
+};
 const TRANSITIONS = {
-  super_admin: {
-    draft: ['assigned', 'in_progress', 'blocked'],
-    assigned: ['in_progress', 'draft', 'blocked'],
-    in_progress: ['ready_for_review', 'assigned', 'blocked'],
-    ready_for_review: ['returned_for_refinement', 'approved', 'blocked'],
-    returned_for_refinement: ['in_progress', 'ready_for_review'],
-    approved: ['completed'],
-    completed: [],
-    blocked: ['in_progress', 'assigned'],
-    archived: []
-  },
-  project_lead: {
-    draft: ['assigned', 'in_progress', 'blocked'],
-    assigned: ['in_progress', 'draft', 'blocked'],
-    in_progress: ['ready_for_review', 'assigned', 'blocked'],
-    ready_for_review: ['returned_for_refinement', 'approved', 'blocked'],
-    returned_for_refinement: ['in_progress', 'ready_for_review'],
-    approved: ['completed'],
-    completed: [],
-    blocked: ['in_progress', 'assigned'],
-    archived: []
-  },
+  // Canonical
+  system_admin:    _managerTransitions,
+  owner:           _managerTransitions,
+  manager:         _managerTransitions,
   quality_manager: {
-    draft: [],
-    assigned: [],
-    in_progress: [],
+    draft: [], assigned: [], in_progress: [],
     ready_for_review: ['returned_for_refinement', 'approved'],
-    returned_for_refinement: [],
-    approved: [],
-    completed: [],
-    blocked: [],
-    archived: []
-  },
-  developer: {
-    draft: ['in_progress'],
-    assigned: ['in_progress'],
-    in_progress: ['ready_for_review', 'blocked'],
-    ready_for_review: [],
-    returned_for_refinement: ['in_progress', 'ready_for_review'],
-    approved: [],
-    completed: [],
-    blocked: ['in_progress'],
-    archived: []
-  },
-  viewer: {
-    draft: [], assigned: [], in_progress: [], ready_for_review: [],
     returned_for_refinement: [], approved: [], completed: [], blocked: [], archived: []
-  }
+  },
+  member:  _memberTransitions,
+  viewer:  { draft: [], assigned: [], in_progress: [], ready_for_review: [], returned_for_refinement: [], approved: [], completed: [], blocked: [], archived: [] },
+  // Legacy aliases
+  super_admin:  _managerTransitions,
+  project_lead: _managerTransitions,
+  developer:    _memberTransitions,
 };
 
 const STATUS_LABELS = {
@@ -156,14 +145,14 @@ async function createTask(req, res) {
 async function getTask(req, res) {
   const task = req.task;
   const canSeeContent = task.isVisibleTo(req.user) ||
-    ['super_admin', 'project_lead', 'quality_manager'].includes(req.projectRole);
+    ['system_admin','super_admin','owner','manager','project_lead','quality_manager'].includes(req.projectRole);
 
   if (!canSeeContent) {
     return res.render('tasks/locked', { title: 'Confidential Task', project: req.project });
   }
 
-  const canEdit = ['super_admin', 'project_lead'].includes(req.projectRole) ||
-    (req.projectRole === 'developer' && task.assignee &&
+  const canEdit = ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole) ||
+    (['developer','member'].includes(req.projectRole) && task.assignee &&
       task.assignee._id.toString() === req.user._id.toString());
 
   const availableTransitions = getAvailableTransitions(req.projectRole, task.status);
@@ -190,8 +179,8 @@ async function getTask(req, res) {
 // GET /projects/:projectId/tasks/:taskId/edit
 async function getEditTask(req, res) {
   const task = req.task;
-  const canEdit = ['super_admin', 'project_lead'].includes(req.projectRole) ||
-    (req.projectRole === 'developer' && task.assignee &&
+  const canEdit = ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole) ||
+    (['developer','member'].includes(req.projectRole) && task.assignee &&
       task.assignee._id.toString() === req.user._id.toString());
 
   if (!canEdit) return res.status(403).render('errors/403', { title: '403 Forbidden' });
@@ -214,8 +203,8 @@ async function getEditTask(req, res) {
 // POST /projects/:projectId/tasks/:taskId/edit
 async function updateTask(req, res) {
   const task = req.task;
-  const canEdit = ['super_admin', 'project_lead'].includes(req.projectRole) ||
-    (req.projectRole === 'developer' && task.assignee &&
+  const canEdit = ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole) ||
+    (['developer','member'].includes(req.projectRole) && task.assignee &&
       task.assignee._id.toString() === req.user._id.toString());
 
   if (!canEdit) return res.status(403).render('errors/403', { title: '403 Forbidden' });
@@ -279,7 +268,7 @@ async function updateStatus(req, res) {
   // Record QA review when QM approves or returns (use newStatus before auto-complete conversion)
   if (task.status === 'ready_for_review' &&
     ['approved', 'returned_for_refinement'].includes(newStatus) &&
-    ['quality_manager', 'project_lead', 'super_admin'].includes(req.projectRole)) {
+    ['quality_manager','system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
     task.qaReview = {
       reviewedBy: req.user._id,
       decision: newStatus === 'returned_for_refinement' ? 'returned' : 'approved',
@@ -291,13 +280,13 @@ async function updateStatus(req, res) {
   // QM approves: respect requiresLeadApproval
   let finalStatus = newStatus;
   if (newStatus === 'approved' && !task.requiresLeadApproval &&
-    ['quality_manager', 'project_lead', 'super_admin'].includes(req.projectRole)) {
+    ['quality_manager','system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
     finalStatus = 'completed';
   }
 
   // Record lead approval when PL completes an approved task
   if (task.status === 'approved' && finalStatus === 'completed' &&
-    ['project_lead', 'super_admin'].includes(req.projectRole)) {
+    ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
     task.leadApproval = {
       approvedBy: req.user._id,
       note: note || '',
@@ -319,7 +308,7 @@ async function updateStatus(req, res) {
   }
   if (finalStatus === 'ready_for_review') {
     const qmIds = req.project.members
-      .filter(m => ['quality_manager', 'project_lead'].includes(m.role) && m.user._id.toString() !== req.user._id.toString())
+      .filter(m => ['quality_manager','manager','owner','project_lead'].includes(m.role) && m.user._id.toString() !== req.user._id.toString())
       .map(m => m.user._id);
     await notifyMany(qmIds, 'task_ready_for_review', `"${task.title}" is ready for review.`, opts);
   }
@@ -328,7 +317,7 @@ async function updateStatus(req, res) {
   }
   if (finalStatus === 'approved' && task.requiresLeadApproval) {
     const leadIds = req.project.members
-      .filter(m => m.role === 'project_lead' && m.user._id.toString() !== req.user._id.toString())
+      .filter(m => ['project_lead','manager','owner'].includes(m.role) && m.user._id.toString() !== req.user._id.toString())
       .map(m => m.user._id);
     await notifyMany(leadIds, 'task_approved', `"${task.title}" was approved by QA and needs your sign-off.`, opts);
   }
@@ -344,7 +333,7 @@ async function updateStatus(req, res) {
 
 // POST /projects/:projectId/tasks/:taskId/archive
 async function archiveTask(req, res) {
-  if (!['super_admin', 'project_lead'].includes(req.projectRole)) {
+  if (!['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
   const task = req.task;
@@ -358,7 +347,7 @@ async function archiveTask(req, res) {
 
 // POST /projects/:projectId/tasks/:taskId/delete
 async function deleteTask(req, res) {
-  if (!['super_admin', 'project_lead'].includes(req.projectRole)) {
+  if (!['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
   const title = req.task.title;
@@ -396,7 +385,7 @@ async function listTasks(req, res) {
 
   const visibleTasks = tasks.map(t => ({
     ...t,
-    visible: !t.isConfidential || ['super_admin', 'project_lead', 'quality_manager'].includes(req.projectRole) ||
+    visible: !t.isConfidential || ['system_admin','super_admin','owner','manager','project_lead','quality_manager'].includes(req.projectRole) ||
       (t.assignee && t.assignee._id.toString() === req.user._id.toString()) ||
       t.createdBy._id.toString() === req.user._id.toString()
   }));
@@ -432,7 +421,7 @@ async function getKanban(req, res) {
     .populate('assignee', 'fullName')
     .lean();
 
-  const canSeeConfidential = ['super_admin', 'project_lead', 'quality_manager'].includes(req.projectRole);
+  const canSeeConfidential = ['system_admin','super_admin','owner','manager','project_lead','quality_manager'].includes(req.projectRole);
 
   const columns = COLUMNS.map(col => ({
     ...col,
@@ -457,7 +446,8 @@ async function getKanban(req, res) {
 // GET /tasks — global task search across all accessible projects
 async function listAllTasks(req, res) {
   const { search, status, priority, projectId, assigneeId, sort } = req.query;
-  const isSuperAdmin = req.user.globalRole === 'super_admin';
+  const { isSystemAdmin: _isSA } = require('../utils/roles');
+  const isSuperAdmin = _isSA(req.user);
 
   // Resolve accessible projects
   const projectFilter = isSuperAdmin ? {} : { 'members.user': req.user._id };

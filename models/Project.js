@@ -4,7 +4,9 @@ const memberSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   role: {
     type: String,
-    enum: ['project_lead', 'quality_manager', 'developer', 'viewer'],
+    // Canonical: manager | quality_manager | member | viewer
+    // Legacy (kept valid): project_lead → manager, developer → member
+    enum: ['project_lead', 'manager', 'quality_manager', 'developer', 'member', 'viewer'],
     default: 'viewer'
   },
   addedAt: { type: Date, default: Date.now }

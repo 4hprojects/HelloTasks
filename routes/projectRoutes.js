@@ -9,7 +9,9 @@ const {
   addMember, removeMember, inviteMember
 } = require('../controllers/projectController');
 
-const canCreate = checkRole('super_admin', 'project_lead');
+// super_admin/system_admin are handled by the isSystemAdmin fallback in checkRole.
+// project_lead normalises to manager; owner is the new canonical top workspace role.
+const canCreate = checkRole('super_admin', 'project_lead', 'owner', 'manager');
 
 router.get('/', isAuthenticated, listProjects);
 router.get('/new', isAuthenticated, canCreate, getNewProject);

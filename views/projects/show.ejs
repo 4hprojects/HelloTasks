@@ -55,13 +55,15 @@
               </td>
               <td class="text-secondary"><%= m.user.email %></td>
               <td>
-                <span class="badge badge--<%= m.role === 'project_lead' ? 'primary' : m.role === 'quality_manager' ? 'info' : m.role === 'developer' ? 'success' : 'neutral' %>">
-                  <%= m.role.replace(/_/g, ' ') %>
+                <% const _prb = { project_lead:'primary', manager:'primary', owner:'danger', quality_manager:'info', developer:'success', member:'success', viewer:'neutral' }; %>
+                <% const _prl = { project_lead:'Manager', manager:'Manager', owner:'Owner', quality_manager:'Quality Manager', developer:'Member', member:'Member', viewer:'Viewer' }; %>
+                <span class="badge badge--<%= _prb[m.role] || 'neutral' %>">
+                  <%= _prl[m.role] || m.role.replace(/_/g, ' ') %>
                 </span>
               </td>
               <% if (canManage) { %>
                 <td>
-                  <% const isOnlyLead = m.role === 'project_lead' && project.members.filter(x => x.role === 'project_lead').length === 1; %>
+                  <% const isOnlyLead = ['project_lead','manager','owner'].includes(m.role) && project.members.filter(x => ['project_lead','manager','owner'].includes(x.role)).length === 1; %>
                   <% if (!isOnlyLead) { %>
                     <form method="POST" action="/projects/<%= project._id %>/members/remove" class="inline-form">
                       <input type="hidden" name="userId" value="<%= m.user._id %>" />
@@ -96,9 +98,9 @@
                 <% }) %>
               </select>
               <select name="role" class="form-select">
-                <option value="developer">Developer</option>
+                <option value="member">Member</option>
                 <option value="quality_manager">Quality Manager</option>
-                <option value="project_lead">Project Lead</option>
+                <option value="manager">Manager</option>
                 <option value="viewer">Viewer</option>
               </select>
               <button type="submit" class="btn btn--primary btn--sm">Add</button>
@@ -122,9 +124,9 @@
             <div class="form-group">
               <label class="form-label" for="inviteRole">Project Role</label>
               <select id="inviteRole" name="role" class="form-select">
-                <option value="developer">Developer</option>
+                <option value="member">Member</option>
                 <option value="quality_manager">Quality Manager</option>
-                <option value="project_lead">Project Lead</option>
+                <option value="manager">Manager</option>
                 <option value="viewer">Viewer</option>
               </select>
             </div>

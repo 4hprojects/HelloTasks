@@ -3,7 +3,8 @@ const Task = require('../models/Task');
 
 async function getDashboard(req, res) {
   const userId = req.user._id;
-  const isSuperAdmin = req.user.globalRole === 'super_admin';
+  const { isSystemAdmin } = require('../utils/roles');
+  const isSuperAdmin = isSystemAdmin(req.user);
 
   // Projects accessible to this user
   const projectFilter = isSuperAdmin ? {} : { 'members.user': userId };

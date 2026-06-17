@@ -10,11 +10,19 @@
   <input type="text" name="search" class="form-input filter-search" placeholder="Search name or email…" value="<%= filters.search || '' %>" />
   <select name="role" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All Roles</option>
-    <option value="super_admin" <%= filters.role === 'super_admin' ? 'selected' : '' %>>Super Admin</option>
-    <option value="project_lead" <%= filters.role === 'project_lead' ? 'selected' : '' %>>Project Lead</option>
-    <option value="quality_manager" <%= filters.role === 'quality_manager' ? 'selected' : '' %>>Quality Manager</option>
-    <option value="developer" <%= filters.role === 'developer' ? 'selected' : '' %>>Developer</option>
-    <option value="viewer" <%= filters.role === 'viewer' ? 'selected' : '' %>>Viewer</option>
+    <optgroup label="Current">
+      <option value="system_admin"    <%= filters.role === 'system_admin'    ? 'selected' : '' %>>System Admin</option>
+      <option value="owner"           <%= filters.role === 'owner'           ? 'selected' : '' %>>Owner</option>
+      <option value="manager"         <%= filters.role === 'manager'         ? 'selected' : '' %>>Manager</option>
+      <option value="quality_manager" <%= filters.role === 'quality_manager' ? 'selected' : '' %>>Quality Manager</option>
+      <option value="member"          <%= filters.role === 'member'          ? 'selected' : '' %>>Member</option>
+      <option value="viewer"          <%= filters.role === 'viewer'          ? 'selected' : '' %>>Viewer</option>
+    </optgroup>
+    <optgroup label="Legacy">
+      <option value="super_admin"  <%= filters.role === 'super_admin'  ? 'selected' : '' %>>super_admin</option>
+      <option value="project_lead" <%= filters.role === 'project_lead' ? 'selected' : '' %>>project_lead</option>
+      <option value="developer"    <%= filters.role === 'developer'    ? 'selected' : '' %>>developer</option>
+    </optgroup>
   </select>
   <select name="status" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All Statuses</option>
@@ -55,7 +63,8 @@
               </td>
               <td class="text-secondary"><%= u.email %></td>
               <td>
-                <span class="badge badge--<%= u.globalRole === 'super_admin' ? 'danger' : u.globalRole === 'project_lead' ? 'primary' : u.globalRole === 'quality_manager' ? 'info' : 'neutral' %>">
+                <% const _rb = { system_admin:'danger', super_admin:'danger', owner:'danger', manager:'primary', project_lead:'primary', quality_manager:'info', member:'success', developer:'success', viewer:'neutral' }; %>
+                <span class="badge badge--<%= _rb[u.globalRole] || 'neutral' %>">
                   <%= roleLabels[u.globalRole] || u.globalRole %>
                 </span>
               </td>
