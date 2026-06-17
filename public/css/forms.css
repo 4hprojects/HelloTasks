@@ -73,6 +73,19 @@
   object-fit: contain;
 }
 
+.auth-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.875rem;
+}
+
 .auth-invite-avatar {
   width: 52px;
   height: 52px;
