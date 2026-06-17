@@ -547,7 +547,12 @@
   border-color: var(--color-border);
 }
 
-.kanban-lock-icon { font-size: 0.875rem; }
+.kanban-lock-icon {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
 
 .kanban-locked-label {
   font-size: 0.8rem;

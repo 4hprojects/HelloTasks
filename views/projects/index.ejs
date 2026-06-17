@@ -10,15 +10,17 @@
 
 <form method="GET" action="/projects" class="filter-bar">
   <input type="text" name="search" class="form-input filter-search" placeholder="Search projects…" value="<%= filters.search %>" />
-  <select name="status" class="form-select filter-select">
+  <select name="status" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All statuses</option>
     <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
     <option value="on_hold" <%= filters.status === 'on_hold' ? 'selected' : '' %>>On Hold</option>
     <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Completed</option>
     <option value="archived" <%= filters.status === 'archived' ? 'selected' : '' %>>Archived</option>
   </select>
-  <button type="submit" class="btn btn--outline btn--sm">Filter</button>
-  <a href="/projects" class="btn btn--ghost btn--sm">Clear</a>
+  <button type="submit" class="btn btn--outline btn--sm">Search</button>
+  <% if (filters.search || filters.status) { %>
+    <a href="/projects" class="btn btn--ghost btn--sm">Clear</a>
+  <% } %>
 </form>
 
 <% if (projects.length === 0) { %>
@@ -30,12 +32,12 @@
 <% } else { %>
   <div class="project-grid">
     <% projects.forEach(project => { %>
-      <div class="project-card">
+      <div class="project-card project-card--<%= project.status %>">
         <div class="project-card-header">
           <div>
             <a href="/projects/<%= project._id %>" class="project-name"><%= project.name %></a>
             <span class="badge badge--<%= project.status === 'active' ? 'success' : project.status === 'on_hold' ? 'warning' : project.status === 'completed' ? 'primary' : 'neutral' %>">
-              <%= project.status.replace('_', ' ') %>
+              <%= project.status.replace(/_/g, ' ') %>
             </span>
           </div>
         </div>

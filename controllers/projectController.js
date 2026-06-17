@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const Task = require('../models/Task');
 const User = require('../models/User');
 const slugify = require('../utils/slugify');
 
@@ -98,12 +99,20 @@ async function getProject(req, res) {
 
   const canManage = isSuperAdmin || (userMember && userMember.role === 'project_lead');
 
-  const allUsers = canManage
-    ? await User.find({ _id: { $nin: project.members.map(m => m.user._id) }, accountStatus: 'active' })
-        .select('fullName email globalRole').lean()
-    : [];
+  const [allUsers, taskTotal, taskInProgress, taskCompleted, taskBlocked] = await Promise.all([
+    canManage
+      ? User.find({ _id: { $nin: project.members.map(m => m.user._id) }, accountStatus: 'active' })
+          .select('fullName email globalRole').lean()
+      : Promise.resolve([]),
+    Task.countDocuments({ project: project._id, status: { $ne: 'archived' } }),
+    Task.countDocuments({ project: project._id, status: 'in_progress' }),
+    Task.countDocuments({ project: project._id, status: 'completed' }),
+    Task.countDocuments({ project: project._id, status: 'blocked' })
+  ]);
 
-  res.render('projects/show', { title: project.name, project, canManage, allUsers, userMember });
+  const taskStats = { total: taskTotal, inProgress: taskInProgress, completed: taskCompleted, blocked: taskBlocked };
+
+  res.render('projects/show', { title: project.name, project, canManage, allUsers, userMember, taskStats });
 }
 
 async function getEditProject(req, res) {
