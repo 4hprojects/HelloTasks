@@ -1,11 +1,14 @@
 <div class="page-header">
-  <h1 class="page-title">User Management</h1>
+  <div>
+    <h1 class="page-subtitle">User Management</h1>
+    <p class="page-desc">Manage accounts, roles, and access.</p>
+  </div>
   <a href="/users/invite" class="btn btn--primary btn--sm">Invite User</a>
 </div>
 
 <form class="filter-bar" method="GET" action="/users">
-  <input type="text" name="search" class="form-control filter-search" placeholder="Search name or email…" value="<%= filters.search || '' %>">
-  <select name="role" class="form-control filter-select">
+  <input type="text" name="search" class="form-input filter-search" placeholder="Search name or email…" value="<%= filters.search || '' %>" />
+  <select name="role" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All Roles</option>
     <option value="super_admin" <%= filters.role === 'super_admin' ? 'selected' : '' %>>Super Admin</option>
     <option value="project_lead" <%= filters.role === 'project_lead' ? 'selected' : '' %>>Project Lead</option>
@@ -13,51 +16,60 @@
     <option value="developer" <%= filters.role === 'developer' ? 'selected' : '' %>>Developer</option>
     <option value="viewer" <%= filters.role === 'viewer' ? 'selected' : '' %>>Viewer</option>
   </select>
-  <select name="status" class="form-control filter-select">
+  <select name="status" class="form-select filter-select" onchange="this.form.submit()">
     <option value="">All Statuses</option>
     <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
     <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
     <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
   </select>
-  <button type="submit" class="btn btn--primary btn--sm">Filter</button>
-  <a href="/users" class="btn btn--ghost btn--sm">Clear</a>
+  <button type="submit" class="btn btn--outline btn--sm">Search</button>
+  <% if (filters.search || filters.role || filters.status) { %>
+    <a href="/users" class="btn btn--ghost btn--sm">Clear</a>
+  <% } %>
 </form>
 
 <% if (users.length === 0) { %>
-  <div class="empty-state-block"><p>No users found.</p></div>
+  <div class="panel"><div class="panel-body"><p class="empty-state">No users found.</p></div></div>
 <% } else { %>
-  <div class="panel no-padding">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Joined</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% users.forEach(u => { %>
+  <div class="panel">
+    <div class="panel-body no-padding">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td><strong><%= u.fullName %></strong></td>
-            <td class="text-secondary"><%= u.email %></td>
-            <td>
-              <span class="badge badge--<%= u.globalRole === 'super_admin' ? 'danger' : u.globalRole === 'project_lead' ? 'primary' : u.globalRole === 'quality_manager' ? 'info' : 'neutral' %>">
-                <%= roleLabels[u.globalRole] || u.globalRole %>
-              </span>
-            </td>
-            <td>
-              <span class="badge badge--<%= u.accountStatus === 'active' ? 'success' : u.accountStatus === 'suspended' ? 'danger' : 'neutral' %>">
-                <%= u.accountStatus %>
-              </span>
-            </td>
-            <td class="text-secondary"><%= new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
-            <td><a href="/users/<%= u._id %>" class="btn btn--sm btn--outline">Edit</a></td>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th></th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% users.forEach(u => { %>
+            <tr>
+              <td>
+                <div class="member-name-cell">
+                  <div class="user-avatar user-avatar--sm"><%= u.fullName.charAt(0).toUpperCase() %></div>
+                  <span class="user-table-name"><%= u.fullName %></span>
+                </div>
+              </td>
+              <td class="text-secondary"><%= u.email %></td>
+              <td>
+                <span class="badge badge--<%= u.globalRole === 'super_admin' ? 'danger' : u.globalRole === 'project_lead' ? 'primary' : u.globalRole === 'quality_manager' ? 'info' : 'neutral' %>">
+                  <%= roleLabels[u.globalRole] || u.globalRole %>
+                </span>
+              </td>
+              <td>
+                <span class="badge badge--<%= u.accountStatus === 'active' ? 'success' : u.accountStatus === 'suspended' ? 'danger' : 'neutral' %>">
+                  <%= u.accountStatus %>
+                </span>
+              </td>
+              <td class="text-secondary"><%= new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+              <td><a href="/users/<%= u._id %>" class="btn btn--sm btn--outline">Manage</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
   </div>
 <% } %>

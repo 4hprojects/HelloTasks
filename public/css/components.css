@@ -246,6 +246,26 @@
   flex-shrink: 0;
 }
 
+.user-avatar--lg {
+  width: 48px;
+  height: 48px;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ── User hero (show page header) ── */
+.user-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+/* ── User name cell in table ── */
+.user-table-name {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .self-tag {
   font-size: 0.75rem;
   color: var(--color-text-muted);

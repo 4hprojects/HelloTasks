@@ -1,17 +1,17 @@
 <div class="page-header">
-  <h1 class="page-title">Invite User</h1>
-  <a href="/users" class="btn btn--outline btn--sm">Back to Users</a>
+  <div>
+    <h1 class="page-subtitle">Invite User</h1>
+    <p class="page-desc">Send an email invitation to add a new team member.</p>
+  </div>
+  <a href="/users" class="btn btn--outline btn--sm">← Back to Users</a>
 </div>
 
 <div class="form-page">
   <div class="panel">
     <div class="panel-header"><h2 class="panel-title">Send Invitation</h2></div>
     <div class="panel-body">
-      <% if (typeof flash !== 'undefined' && flash.error) { %>
-        <div class="alert alert--error"><%= flash.error %></div>
-      <% } %>
-      <p class="form-hint" style="margin-bottom:1.25rem;">The user will receive an email with a link to set their password and activate their account. The link expires in 72 hours.</p>
-      <form method="POST" action="/users/invite" novalidate>
+      <p class="panel-desc">The user will receive an email with a link to set their password and activate their account. The link expires in 72 hours.</p>
+      <form method="POST" action="/users/invite" novalidate class="form-stack">
         <div class="form-group">
           <label for="fullName" class="form-label">Full Name</label>
           <input type="text" id="fullName" name="fullName" class="form-input" required placeholder="Jane Smith" autocomplete="off" />
@@ -22,7 +22,7 @@
         </div>
         <div class="form-group">
           <label for="globalRole" class="form-label">Role</label>
-          <select id="globalRole" name="globalRole" class="form-control">
+          <select id="globalRole" name="globalRole" class="form-select">
             <% Object.entries(roleLabels).forEach(([value, label]) => { %>
               <option value="<%= value %>" <%= value === 'developer' ? 'selected' : '' %>><%= label %></option>
             <% }) %>

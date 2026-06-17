@@ -1,6 +1,12 @@
 <div class="page-header">
-  <h1 class="page-title"><%= targetUser.fullName %></h1>
-  <a href="/users" class="btn btn--outline btn--sm">Back to Users</a>
+  <div class="user-hero">
+    <div class="user-avatar user-avatar--lg"><%= targetUser.fullName.charAt(0).toUpperCase() %></div>
+    <div>
+      <h1 class="page-subtitle"><%= targetUser.fullName %></h1>
+      <p class="page-desc"><%= targetUser.email %></p>
+    </div>
+  </div>
+  <a href="/users" class="btn btn--outline btn--sm">← Back to Users</a>
 </div>
 
 <div class="layout-split">
@@ -9,8 +15,12 @@
     <div class="panel-header"><h2 class="panel-title">Account Info</h2></div>
     <div class="panel-body">
       <dl class="detail-list">
-        <dt>Email</dt><dd><%= targetUser.email %></dd>
-        <dt>Current Role</dt><dd><%= roleLabels[targetUser.globalRole] || targetUser.globalRole %></dd>
+        <dt>Role</dt>
+        <dd>
+          <span class="badge badge--<%= targetUser.globalRole === 'super_admin' ? 'danger' : targetUser.globalRole === 'project_lead' ? 'primary' : targetUser.globalRole === 'quality_manager' ? 'info' : 'neutral' %>">
+            <%= roleLabels[targetUser.globalRole] || targetUser.globalRole %>
+          </span>
+        </dd>
         <dt>Status</dt>
         <dd>
           <span class="badge badge--<%= targetUser.accountStatus === 'active' ? 'success' : targetUser.accountStatus === 'suspended' ? 'danger' : 'neutral' %>">
@@ -25,16 +35,10 @@
   <div class="panel">
     <div class="panel-header"><h2 class="panel-title">Update Account</h2></div>
     <div class="panel-body">
-      <% if (typeof flash !== 'undefined' && flash.error) { %>
-        <div class="alert alert--error"><%= flash.error %></div>
-      <% } %>
-      <% if (typeof flash !== 'undefined' && flash.success) { %>
-        <div class="alert alert--success"><%= flash.success %></div>
-      <% } %>
-      <form action="/users/<%= targetUser._id %>" method="POST">
+      <form action="/users/<%= targetUser._id %>" method="POST" class="form-stack">
         <div class="form-group">
           <label class="form-label" for="globalRole">Global Role</label>
-          <select id="globalRole" name="globalRole" class="form-control">
+          <select id="globalRole" name="globalRole" class="form-select">
             <option value="super_admin" <%= targetUser.globalRole === 'super_admin' ? 'selected' : '' %>>Super Admin</option>
             <option value="project_lead" <%= targetUser.globalRole === 'project_lead' ? 'selected' : '' %>>Project Lead</option>
             <option value="quality_manager" <%= targetUser.globalRole === 'quality_manager' ? 'selected' : '' %>>Quality Manager</option>
@@ -44,13 +48,15 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="accountStatus">Account Status</label>
-          <select id="accountStatus" name="accountStatus" class="form-control">
+          <select id="accountStatus" name="accountStatus" class="form-select">
             <option value="pending" <%= targetUser.accountStatus === 'pending' ? 'selected' : '' %>>Pending</option>
             <option value="active" <%= targetUser.accountStatus === 'active' ? 'selected' : '' %>>Active</option>
             <option value="suspended" <%= targetUser.accountStatus === 'suspended' ? 'selected' : '' %>>Suspended</option>
           </select>
         </div>
-        <button type="submit" class="btn btn--primary">Save Changes</button>
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">Save Changes</button>
+        </div>
       </form>
     </div>
   </div>
