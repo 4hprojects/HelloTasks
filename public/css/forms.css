@@ -130,6 +130,23 @@
   font-weight: 500;
 }
 
+.auth-password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
+
+.auth-forgot-inline {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.auth-forgot-inline:hover {
+  color: var(--color-primary);
+}
+
+/* kept for backwards compat if referenced elsewhere */
 .auth-forgot {
   text-align: right;
   margin-top: -0.5rem;

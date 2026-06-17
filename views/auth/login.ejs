@@ -2,7 +2,7 @@
   <div class="auth-header">
     <img src="/HelloTasksIcon.png" alt="HelloTasks" class="auth-logo">
     <h1 class="auth-title">HelloTasks</h1>
-    <p class="auth-subtitle">Welcome back</p>
+    <p class="auth-subtitle">Welcome back — sign in to continue</p>
   </div>
 
   <form method="POST" action="/login" class="auth-form" novalidate>
@@ -21,6 +21,9 @@
       </div>
     </div>
     <div class="form-group">
+      <div class="auth-password-row">
+        <a href="/forgot-password" class="auth-forgot-inline">Forgot password?</a>
+      </div>
       <div class="form-float form-input-wrapper">
         <input
           type="password"
@@ -34,9 +37,6 @@
         <%- include('../partials/password-toggle', { targetId: 'password' }) %>
         <label for="password" class="form-label">Password</label>
       </div>
-    </div>
-    <div class="auth-forgot">
-      <a href="/forgot-password">Forgot password?</a>
     </div>
     <button type="submit" class="btn btn--primary btn--full" data-loading-text="Signing in...">Sign In</button>
   </form>
