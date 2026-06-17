@@ -52,16 +52,9 @@
 .logo-mark {
   width: 36px;
   height: 36px;
-  background-color: var(--color-primary);
-  color: #fff;
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .logo-text {
