@@ -1,7 +1,10 @@
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const slugify = require('../utils/slugify');
+const { sendEmail } = require('../services/emailService');
 
 async function uniqueSlug(base, excludeId = null) {
   let slug = base;
@@ -85,7 +88,7 @@ async function createProject(req, res) {
 async function getProject(req, res) {
   const project = await Project.findById(req.params.id)
     .populate('createdBy', 'fullName email')
-    .populate('members.user', 'fullName email globalRole')
+    .populate('members.user', 'fullName email globalRole accountStatus')
     .lean();
 
   if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
@@ -238,8 +241,102 @@ async function removeMember(req, res) {
   res.redirect(`/projects/${project._id}`);
 }
 
+async function inviteMember(req, res) {
+  const project = await Project.findById(req.params.id);
+  if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
+
+  if (!canManageProject(req.user, project)) {
+    return res.status(403).render('errors/403', { title: '403 Forbidden' });
+  }
+
+  const { email, fullName, role } = req.body;
+  const validRoles = ['project_lead', 'quality_manager', 'developer', 'viewer'];
+
+  if (!email || !email.trim() || !fullName || !fullName.trim() || !validRoles.includes(role)) {
+    req.session.flash = { error: 'Email, name, and a valid role are required.' };
+    return res.redirect(`/projects/${project._id}`);
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = fullName.trim();
+
+  let targetUser = await User.findOne({ email: cleanEmail });
+
+  if (targetUser && project.hasMember(targetUser._id)) {
+    req.session.flash = { error: 'That person is already a member of this project.' };
+    return res.redirect(`/projects/${project._id}`);
+  }
+
+  if (targetUser && targetUser.accountStatus === 'suspended') {
+    req.session.flash = { error: 'That user account is suspended and cannot be added.' };
+    return res.redirect(`/projects/${project._id}`);
+  }
+
+  if (targetUser && targetUser.accountStatus === 'active') {
+    project.members.push({ user: targetUser._id, role });
+    await project.save();
+    req.session.flash = { success: `${targetUser.fullName} added as ${role.replace(/_/g, ' ')}.` };
+    return res.redirect(`/projects/${project._id}`);
+  }
+
+  // New or pending user — generate invite token
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 72 * 60 * 60 * 1000);
+
+  if (targetUser) {
+    targetUser.fullName = cleanName;
+    targetUser.inviteToken = token;
+    targetUser.inviteExpires = expires;
+    await targetUser.save();
+  } else {
+    const placeholderHash = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 12);
+    targetUser = await User.create({
+      fullName: cleanName,
+      email: cleanEmail,
+      passwordHash: placeholderHash,
+      globalRole: 'viewer',
+      accountStatus: 'pending',
+      inviteToken: token,
+      inviteExpires: expires
+    });
+  }
+
+  project.members.push({ user: targetUser._id, role });
+  await project.save();
+
+  const appUrl = process.env.APP_URL || 'http://localhost:3000';
+  const acceptLink = `${appUrl}/accept-invite/${token}`;
+  const html = `
+    <div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;">
+      <p>Hi ${cleanName},</p>
+      <p><strong>${req.user.fullName}</strong> has invited you to collaborate on
+         <strong>${project.name}</strong> in HelloTasks.</p>
+      <p>Click below to set up your account and get started. This link expires in 72 hours.</p>
+      <p style="margin:1.5rem 0;">
+        <a href="${acceptLink}"
+           style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">
+          Accept Invitation
+        </a>
+      </p>
+      <p style="color:#64748B;font-size:0.875rem;">
+        If you weren't expecting this invitation, you can safely ignore this email.
+      </p>
+    </div>
+  `;
+
+  try {
+    await sendEmail(cleanEmail, `You've been invited to collaborate on ${project.name}`, html);
+    req.session.flash = { success: `Invitation sent to ${cleanEmail}. They've been added as a pending member.` };
+  } catch (err) {
+    console.error('Invite email failed:', err);
+    req.session.flash = { success: `${cleanEmail} added as a pending member, but the invite email could not be sent.` };
+  }
+
+  res.redirect(`/projects/${project._id}`);
+}
+
 module.exports = {
   listProjects, getNewProject, createProject,
   getProject, getEditProject, updateProject, deleteProject,
-  addMember, removeMember
+  addMember, removeMember, inviteMember
 };

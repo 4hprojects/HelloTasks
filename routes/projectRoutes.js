@@ -6,7 +6,7 @@ const { getKanban } = require('../controllers/taskController');
 const {
   listProjects, getNewProject, createProject,
   getProject, getEditProject, updateProject, deleteProject,
-  addMember, removeMember
+  addMember, removeMember, inviteMember
 } = require('../controllers/projectController');
 
 const canCreate = checkRole('super_admin', 'project_lead');
@@ -19,6 +19,7 @@ router.get('/:id/edit', isAuthenticated, getEditProject);
 router.post('/:id/edit', isAuthenticated, updateProject);
 router.post('/:id/delete', isAuthenticated, deleteProject);
 router.post('/:id/members', isAuthenticated, addMember);
+router.post('/:id/members/invite', isAuthenticated, inviteMember);
 router.post('/:id/members/remove', isAuthenticated, removeMember);
 router.get('/:id/kanban', isAuthenticated, requireProjectMember, getKanban);
 

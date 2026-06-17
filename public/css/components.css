@@ -285,6 +285,38 @@
   min-width: 160px;
 }
 
+/* ── Tab toggle (used in add-collaborator panel) ── */
+.tab-toggle {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0;
+}
+
+.tab-toggle-btn {
+  padding: 0.375rem 0.875rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 0;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.tab-toggle-btn:hover {
+  color: var(--color-text);
+}
+
+.tab-toggle-btn--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
 /* ── Form page layout ── */
 .form-page {
   max-width: 680px;
