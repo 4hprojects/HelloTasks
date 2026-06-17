@@ -2,7 +2,7 @@
 
 **Brief Approved:** 2026-06-16
 **Build Started:** 2026-06-16
-**Current Phase:** MVP Complete — All planned phases done 2026-06-16
+**Current Phase:** UI Polish Complete — All pages redesigned 2026-06-18
 
 ---
 
@@ -27,6 +27,7 @@
 | 6 | Supabase Storage Ready | Done | 2026-06-16 | 2026-06-16 |
 | 7 | Resend Email Ready | Done | 2026-06-16 | 2026-06-16 |
 | 8 | First Run Verification | Done | 2026-06-16 | 2026-06-16 |
+| 9 | UI Polish | Done | 2026-06-17 | 2026-06-18 |
 
 ---
 
@@ -218,6 +219,36 @@ After Phase 8 passes, the following areas remain:
 - [x] Admin settings page (app name, support email, open registration toggle, report note) — Done 2026-06-16
 - [x] Weekly report — manually triggered HTML email to all active Super Admins + Project Leads — Done 2026-06-16
 - [x] Search and filters for tasks and projects — Done 2026-06-16
+
+---
+
+---
+
+## Phase 9: UI Polish
+
+**Status:** Done | **Started:** 2026-06-17 | **Completed:** 2026-06-18
+
+Full redesign of every user-facing page. Consistent design patterns applied across the app.
+
+**Design patterns introduced:**
+- Hero cards (`task-show-hero`, `proj-show-hero`) — surface card with priority/status colour `border-left`
+- Two-column form layout (`task-form-layout`) — main fields left, sticky properties sidebar right
+- Live card preview (`proj-form-preview`) — project new/edit sidebar updates avatar + badge as you type
+- Vertical timeline (`task-timeline`) — coloured dots + connecting line for status history
+- Icon page headers (`task-form-header`, `auth-card-icon`) — icon circle + title + subtitle
+- Kanban hero bar — compact project context + actions above kanban board
+- Invite steps block (`invite-steps`) — numbered step list
+
+**Pages completed:**
+
+- [x] Auth: login, register, forgot-password, reset-password, accept-invite
+- [x] Dashboard
+- [x] Notifications
+- [x] Projects: list, show, new, edit, kanban
+- [x] Tasks: all-tasks (global), project list, show, new, edit, locked (confidential)
+- [x] Users: list, show, invite
+- [x] Admin: settings
+- [x] Errors: 403, 404, 500
 
 ---
 
