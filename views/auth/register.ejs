@@ -67,7 +67,12 @@
         <%- include('../partials/password-toggle', { targetId: 'password' }) %>
         <label for="password" class="form-label">Password</label>
       </div>
-      <span class="form-hint">Min. 8 characters</span>
+      <div class="pw-strength" id="pwStrength" style="display:none">
+        <div class="pw-strength-bar">
+          <div class="pw-strength-fill" id="pwStrengthFill"></div>
+        </div>
+        <span class="pw-strength-label" id="pwStrengthLabel"></span>
+      </div>
     </div>
     <div class="form-group">
       <div class="form-float form-input-wrapper">
@@ -96,3 +101,30 @@
 
   <p class="auth-footer">Already have an account? <a href="/login">Sign in</a></p>
 </div>
+<script>
+(function () {
+  var input = document.getElementById('password');
+  var meter = document.getElementById('pwStrength');
+  var fill  = document.getElementById('pwStrengthFill');
+  var label = document.getElementById('pwStrengthLabel');
+
+  function score(val) {
+    if (val.length === 0) return 0;
+    if (val.length < 8)   return 1;
+    var types = 0;
+    if (/[a-z]/.test(val)) types++;
+    if (/[A-Z]/.test(val)) types++;
+    if (/[0-9]/.test(val)) types++;
+    return types >= 2 ? 3 : 2;
+  }
+
+  input.addEventListener('input', function () {
+    var s = score(this.value);
+    if (s === 0) { meter.style.display = 'none'; return; }
+    meter.style.display = 'flex';
+    fill.className = 'pw-strength-fill pw-strength-fill--' + ['', 'weak', 'fair', 'strong'][s];
+    label.textContent = ['', 'Weak', 'Fair', 'Strong'][s];
+    label.className   = 'pw-strength-label pw-strength-label--' + ['', 'weak', 'fair', 'strong'][s];
+  });
+}());
+</script>
