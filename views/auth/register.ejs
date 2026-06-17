@@ -87,7 +87,7 @@
       <span class="form-error confirm-password-error" style="display:none">Passwords do not match.</span>
     </div>
     <% if (turnstileSiteKey) { %>
-      <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-size="flexible"></div>
+      <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-appearance="interaction-only"></div>
     <% } %>
     <button type="submit" class="btn btn--primary btn--full" data-loading-text="Creating account...">Create Account</button>
   </form>
