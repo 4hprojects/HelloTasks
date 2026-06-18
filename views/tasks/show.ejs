@@ -96,7 +96,7 @@
                 <input type="text" id="statusNote" name="note" class="form-input" placeholder="Reason or context…" />
               </div>
             </div>
-            <button type="submit" class="btn btn--primary btn--sm">Update Status</button>
+            <button type="submit" class="btn btn--primary btn--sm" data-loading-text="Saving...">Update Status</button>
           </form>
         </div>
       </div>
@@ -198,7 +198,7 @@
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="file" name="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.md" required />
             <label for="fileInput" class="file-input-label">Choose file</label>
-            <button type="submit" class="btn btn--primary btn--sm" id="uploadBtn" disabled>Upload</button>
+            <button type="submit" class="btn btn--primary btn--sm" id="uploadBtn" data-loading-text="Uploading..." disabled>Upload</button>
           </form>
           <p class="form-hint mt-sm">Images up to 5 MB · Documents up to 10 MB · Converted to WebP automatically</p>
         </div>
@@ -247,7 +247,7 @@
               <div id="mentionDropdown" class="mention-dropdown" style="display:none;"></div>
             </div>
             <div class="comment-form-actions">
-              <button type="submit" class="btn btn--primary btn--sm">Post Comment</button>
+              <button type="submit" class="btn btn--primary btn--sm" data-loading-text="Posting...">Post Comment</button>
             </div>
           </form>
         </div>

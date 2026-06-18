@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Auth forms: confirm password validation + loading states
+  // Auth forms: confirm password client-side validation
   document.querySelectorAll('.auth-form').forEach((form) => {
     const cpwInput = form.querySelector('#confirmPassword');
     const cpwErr = form.querySelector('.confirm-password-error');
@@ -70,13 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         if (cpwErr) cpwErr.style.display = '';
         cpwInput.focus();
-        return;
       }
-
-      const btn = form.querySelector('button[type="submit"]');
-      if (!btn || !btn.dataset.loadingText) return;
-      btn.textContent = btn.dataset.loadingText;
-      btn.disabled = true;
     });
+  });
+
+  // Loading state for any form with a data-loading-text submit button
+  document.addEventListener('submit', (e) => {
+    if (e.defaultPrevented) return;
+    const btn = e.target.querySelector('button[type="submit"][data-loading-text]');
+    if (!btn) return;
+    btn.textContent = btn.dataset.loadingText;
+    btn.disabled = true;
   });
 });
