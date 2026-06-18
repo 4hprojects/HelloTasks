@@ -219,8 +219,13 @@
       <!-- Comments -->
       <div class="panel" id="comments">
         <div class="panel-header">
-          <h3 class="panel-title">Comments <span class="panel-title-count"><%= comments.length %></span></h3>
+          <h3 class="panel-title">Comments <span class="panel-title-count"><%= totalComments %></span></h3>
         </div>
+        <% if (olderCount > 0) { %>
+          <div class="panel-body panel-body--compact">
+            <a href="?allComments=1#comments" class="older-comments-link">View <%= olderCount %> older comment<%= olderCount !== 1 ? 's' : '' %></a>
+          </div>
+        <% } %>
         <% if (comments.length > 0) { %>
           <div class="comments-list">
             <% comments.forEach(c => { %>

@@ -1547,3 +1547,19 @@
   border-radius: 2px;
   transition: width 0.15s ease;
 }
+
+/* ── Older comments link ── */
+.panel-body--compact {
+  padding: 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.older-comments-link {
+  font-size: 0.8125rem;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.older-comments-link:hover {
+  text-decoration: underline;
+}

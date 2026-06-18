@@ -18,27 +18,31 @@ async function getDashboard(req, res) {
   const sevenDaysAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const [
-    totalProjects,
-    myTasks,
-    dueSoon,
-    readyForReview,
-    blocked,
-    completedRecently,
-    recentTasks
-  ] = await Promise.all([
+  const [totalProjects, [taskFacets], recentTasks] = await Promise.all([
     Project.countDocuments(projectFilter),
-    Task.countDocuments({ ...baseFilter, assignee: userId }),
-    Task.countDocuments({ ...baseFilter, dueDate: { $lte: sevenDaysAhead, $gte: now }, status: { $nin: ['archived', 'completed'] } }),
-    Task.countDocuments({ ...baseFilter, status: 'ready_for_review' }),
-    Task.countDocuments({ ...baseFilter, status: 'blocked' }),
-    Task.countDocuments({ ...baseFilter, status: 'completed', updatedAt: { $gte: thirtyDaysAgo } }),
+    Task.aggregate([
+      { $match: baseFilter },
+      { $facet: {
+        myTasks:           [{ $match: { assignee: userId } }, { $count: 'n' }],
+        dueSoon:           [{ $match: { dueDate: { $lte: sevenDaysAhead, $gte: now }, status: { $nin: ['archived', 'completed'] } } }, { $count: 'n' }],
+        readyForReview:    [{ $match: { status: 'ready_for_review' } }, { $count: 'n' }],
+        blocked:           [{ $match: { status: 'blocked' } }, { $count: 'n' }],
+        completedRecently: [{ $match: { status: 'completed', updatedAt: { $gte: thirtyDaysAgo } } }, { $count: 'n' }],
+      }}
+    ]),
     Task.find({ ...baseFilter, assignee: userId })
       .populate('project', 'name')
       .sort({ updatedAt: -1 })
       .limit(8)
       .lean()
   ]);
+
+  const n = (key) => taskFacets?.[key]?.[0]?.n ?? 0;
+  const myTasks          = n('myTasks');
+  const dueSoon          = n('dueSoon');
+  const readyForReview   = n('readyForReview');
+  const blocked          = n('blocked');
+  const completedRecently = n('completedRecently');
 
   const STATUS_LABELS = {
     draft: 'Draft', assigned: 'Assigned', in_progress: 'In Progress',

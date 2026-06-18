@@ -34,10 +34,10 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~High~~ | ~~Add indexes to FileRecord model~~ ✅ Done 2026-06-18 |
 | ~~High~~ | ~~Add pagination to global task list (`/tasks`)~~ ✅ Done 2026-06-18 |
 | ~~High~~ | ~~Add pagination to notifications list~~ ✅ Done 2026-06-18 |
-| Medium | Add pagination to user list — currently loads all users |
-| Medium | Add pagination to comments on task show page — currently loads all comments |
-| Medium | Refactor dashboard to use a single aggregation pipeline instead of 7 separate queries |
-| Medium | Extract repeated "assignable users" query in taskController into a shared helper — called 4+ times identically |
+| ~~Medium~~ | ~~Add pagination to user list — currently loads all users~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Add pagination to comments on task show page — currently loads all comments~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Refactor dashboard to use a single aggregation pipeline instead of 7 separate queries~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Extract repeated "assignable users" query in taskController into a shared helper — called 4+ times identically~~ ✅ Done 2026-06-18 |
 | Low | Refactor weekly report to use MongoDB aggregation instead of client-side JS filtering |
 
 ---

@@ -24,21 +24,34 @@ async function listUsers(req, res) {
   const filter = {};
   if (role) filter.globalRole = role;
   if (status) filter.accountStatus = status;
+  if (search) filter.$or = [
+    { fullName: { $regex: search, $options: 'i' } },
+    { email:    { $regex: search, $options: 'i' } }
+  ];
 
-  let users = await User.find(filter).sort({ createdAt: -1 }).lean();
+  const PAGE_SIZE = 25;
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const total = await User.countDocuments(filter);
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  const safePage = Math.min(page, totalPages);
 
-  if (search) {
-    const q = search.toLowerCase();
-    users = users.filter(u =>
-      u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
-  }
+  const users = await User.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((safePage - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
+    .lean();
+
+  const qp = new URLSearchParams();
+  if (search) qp.set('search', search);
+  if (role)   qp.set('role', role);
+  if (status) qp.set('status', status);
 
   res.render('users/index', {
     title: 'User Management',
     users,
     roleLabels: ROLE_LABELS,
-    filters: { search, role, status }
+    filters: { search: search || '', role: role || '', status: status || '' },
+    pagination: { page: safePage, totalPages, total, queryBase: qp.toString() }
   });
 }
 

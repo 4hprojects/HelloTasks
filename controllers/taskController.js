@@ -84,13 +84,17 @@ function validateExternalUrl(url) {
   }
 }
 
+async function getAssignableUsers(project) {
+  const ids = project.members
+    .filter(m => m.role !== 'viewer')
+    .map(m => m.user._id || m.user);
+  return User.find({ _id: { $in: ids }, accountStatus: 'active' })
+    .select('fullName email').lean();
+}
+
 // GET /projects/:projectId/tasks/new
 async function getNewTask(req, res) {
-  const members = req.project.members.filter(m => m.role !== 'viewer');
-  const assignableUsers = await User.find({
-    _id: { $in: members.map(m => m.user._id || m.user) },
-    accountStatus: 'active'
-  }).select('fullName email').lean();
+  const assignableUsers = await getAssignableUsers(req.project);
 
   res.render('tasks/new', {
     title: 'New Task',
@@ -114,12 +118,7 @@ async function createTask(req, res) {
   }
 
   if (errors.length) {
-    const members = req.project.members.filter(m => m.role !== 'viewer');
-    const assignableUsers = await User.find({
-      _id: { $in: members.map(m => m.user._id || m.user) },
-      accountStatus: 'active'
-    }).select('fullName email').lean();
-
+    const assignableUsers = await getAssignableUsers(req.project);
     return res.render('tasks/new', {
       title: 'New Task', project: req.project,
       assignableUsers, errors, body: req.body
@@ -186,10 +185,27 @@ async function getTask(req, res) {
 
   const availableTransitions = getAvailableTransitions(req.projectRole, task.status);
 
-  const [comments, files] = await Promise.all([
-    Comment.find({ task: task._id }).populate('author', 'fullName').sort({ createdAt: 1 }).lean(),
+  const COMMENTS_PAGE_SIZE = 20;
+  const showAllComments = req.query.allComments === '1';
+
+  const [totalComments, files] = await Promise.all([
+    Comment.countDocuments({ task: task._id }),
     FileRecord.find({ task: task._id }).populate('uploadedBy', 'fullName').sort({ createdAt: -1 }).lean()
   ]);
+
+  let comments;
+  if (showAllComments || totalComments <= COMMENTS_PAGE_SIZE) {
+    comments = await Comment.find({ task: task._id })
+      .populate('author', 'fullName').sort({ createdAt: 1 }).lean();
+  } else {
+    // Load the most recent COMMENTS_PAGE_SIZE, then reverse to show oldest-first
+    comments = await Comment.find({ task: task._id })
+      .populate('author', 'fullName').sort({ createdAt: -1 })
+      .limit(COMMENTS_PAGE_SIZE).lean();
+    comments.reverse();
+  }
+
+  const olderCount = showAllComments ? 0 : Math.max(0, totalComments - comments.length);
 
   // For confidential tasks, replace permanent public URLs with short-lived signed URLs
   if (task.isConfidential && files.length > 0) {
@@ -212,6 +228,8 @@ async function getTask(req, res) {
     statusLabels: STATUS_LABELS,
     projectRole: req.projectRole,
     comments,
+    totalComments,
+    olderCount,
     files,
     formatSize
   });
@@ -226,11 +244,7 @@ async function getEditTask(req, res) {
 
   if (!canEdit) return res.status(403).render('errors/403', { title: '403 Forbidden' });
 
-  const members = req.project.members.filter(m => m.role !== 'viewer');
-  const assignableUsers = await User.find({
-    _id: { $in: members.map(m => m.user._id || m.user) },
-    accountStatus: 'active'
-  }).select('fullName email').lean();
+  const assignableUsers = await getAssignableUsers(req.project);
 
   res.render('tasks/edit', {
     title: `Edit — ${task.title}`,
@@ -262,11 +276,7 @@ async function updateTask(req, res) {
   }
 
   if (errors.length) {
-    const members = req.project.members.filter(m => m.role !== 'viewer');
-    const assignableUsers = await User.find({
-      _id: { $in: members.map(m => m.user._id || m.user) },
-      accountStatus: 'active'
-    }).select('fullName email').lean();
+    const assignableUsers = await getAssignableUsers(req.project);
     return res.render('tasks/edit', {
       title: `Edit — ${task.title}`, project: req.project,
       task: { ...task.toObject(), ...req.body }, assignableUsers, errors

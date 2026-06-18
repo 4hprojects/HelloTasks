@@ -46,7 +46,7 @@
     </div>
   </div>
 <% } else { %>
-  <p class="results-count"><%= users.length %> user<%= users.length !== 1 ? 's' : '' %></p>
+  <p class="results-count"><%= pagination.total %> user<%= pagination.total !== 1 ? 's' : '' %></p>
   <div class="panel">
     <div class="panel-body no-padding">
       <table class="data-table data-table--users">
@@ -105,4 +105,5 @@
       </table>
     </div>
   </div>
+  <%- include('../partials/pagination', { pagination }) %>
 <% } %>
