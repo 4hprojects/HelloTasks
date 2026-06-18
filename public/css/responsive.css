@@ -41,6 +41,32 @@
   .topbar {
     padding: 0 1rem;
   }
+
+  /* Tables: horizontal scroll container */
+  .panel-body.no-padding {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Task tables: hide Due column */
+  .data-table--tasks th:nth-child(5),
+  .data-table--tasks td:nth-child(5) { display: none; }
+
+  /* Dashboard task table: hide Due column */
+  .data-table--dashboard th:nth-child(5),
+  .data-table--dashboard td:nth-child(5) { display: none; }
+
+  /* Users table: hide Joined column */
+  .data-table--users th:nth-child(4),
+  .data-table--users td:nth-child(4) { display: none; }
+
+  /* Filter bar: search input spans full width */
+  .filter-search {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -51,4 +77,12 @@
   .auth-card {
     padding: 2rem 1.25rem;
   }
+
+  /* Task tables: also hide Assignee column */
+  .data-table--tasks th:nth-child(4),
+  .data-table--tasks td:nth-child(4) { display: none; }
+
+  /* Dashboard task table: also hide Priority column */
+  .data-table--dashboard th:nth-child(3),
+  .data-table--dashboard td:nth-child(3) { display: none; }
 }
