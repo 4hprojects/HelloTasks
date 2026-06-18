@@ -14,8 +14,8 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~High~~ | ~~Sanitize comment content before saving~~ ✅ Done 2026-06-18 |
 | ~~High~~ | ~~Validate External URL field with URL parsing~~ ✅ Done 2026-06-18 |
 | ~~High~~ | ~~Add `sameSite: 'lax'` to session cookie~~ ✅ Done 2026-06-18 |
-| High | Add account lockout after N failed login attempts — no failed-attempt tracking exists |
-| Medium | Fix `res.redirect('back')` in notificationController.js — deprecated and allows open redirect; replace with `/notifications` |
+| ~~High~~ | ~~Add account lockout after N failed login attempts~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Fix `res.redirect('back')` in notificationController.js~~ ✅ Done 2026-06-18 |
 | Medium | Invalidate old password reset token when a new one is requested |
 | Medium | Validate file type by extension independently of MIME type — MIME can be spoofed |
 | Medium | Add HTTPS redirect middleware in production (check `APP_ENV=production`) |
@@ -27,13 +27,13 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| High | Add indexes to Task model: `project`, `assignee`, `status`, `dueDate`, `createdAt` |
-| High | Add indexes to Project model: `slug`, `status`, `members.user` |
-| High | Add indexes to User model: `accountStatus`, `globalRole` |
-| High | Add indexes to Comment model: compound `{ task: 1, createdAt: -1 }` |
-| High | Add indexes to FileRecord model: `task`, `project` |
-| High | Add pagination to global task list (`/tasks`) — currently hard-limited to 200 with no paging UI |
-| High | Add pagination to notifications list — hard-limited to 100 with no paging UI |
+| ~~High~~ | ~~Add indexes to Task model~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add indexes to Project model~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add indexes to User model~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add indexes to Comment model~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add indexes to FileRecord model~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add pagination to global task list (`/tasks`)~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add pagination to notifications list~~ ✅ Done 2026-06-18 |
 | Medium | Add pagination to user list — currently loads all users |
 | Medium | Add pagination to comments on task show page — currently loads all comments |
 | Medium | Refactor dashboard to use a single aggregation pipeline instead of 7 separate queries |
@@ -48,7 +48,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| High | Add `autofocus` to the first field on login, register, forgot-password |
+| ~~High~~ | ~~Add `autofocus` to the first field on login, register, forgot-password~~ ✅ Done 2026-06-18 |
 | Medium | Show a success confirmation page/message after password reset completes (currently just redirects) |
 | Medium | Add client-side email format validation on register and forgot-password before submit |
 | Low | Add "Remember me" checkbox on login |
@@ -57,7 +57,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| High | Make task list table responsive on mobile — currently overflows on small screens |
+| ~~High~~ | ~~Make task list table responsive on mobile~~ ✅ Done 2026-06-18 |
 | High | Make kanban board horizontally scrollable on mobile — currently unusable |
 | High | Add file upload progress indicator — no feedback during upload |
 | Medium | Allow checking off checklist items directly from task show page (currently read-only, must go to edit) |
@@ -72,7 +72,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| High | Make project member table responsive on mobile |
+| ~~High~~ | ~~Make project member table responsive on mobile~~ ✅ Done 2026-06-18 |
 | Medium | Add results count to project list filter bar ("Showing X of Y projects") |
 | Medium | Add archive option for projects (soft delete, not permanent delete) |
 | Medium | Add client-side email validation on the "Invite by Email" form before submit |
@@ -98,7 +98,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| High | Implement loading spinner on button click for async actions (file upload, status update, comment post) — `data-loading-text` attribute exists but no JS activates it |
+| ~~High~~ | ~~Implement loading spinner on button click for async actions~~ ✅ Done 2026-06-18 |
 | Medium | Replace all browser `confirm()` destructive action dialogs with a consistent styled modal |
 | Medium | Add consistent empty-state CTAs across all list views (some have them, some don't) |
 | Low | Add sticky column headers to long tables |
@@ -109,8 +109,8 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| High | Validate required environment variables at startup (MONGO_URI, SESSION_SECRET, etc.) — currently fails silently |
-| High | Add Morgan HTTP request logging middleware to server.js |
+| ~~High~~ | ~~Validate required environment variables at startup~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add Morgan HTTP request logging middleware to server.js~~ ✅ Done 2026-06-18 |
 | Medium | Centralise email HTML into reusable template functions or a templates/ folder — currently inlined in multiple controllers |
 | Medium | Add audit logging for critical actions: delete task, delete project, remove member, change user role |
 | Medium | Standardise role checking to always use utils/roles.js — some controllers still hardcode role name arrays |
