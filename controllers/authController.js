@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const AppSetting = require('../models/AppSetting');
 const { sendEmail } = require('../services/emailService');
+const { passwordResetEmail } = require('../services/emailTemplates');
 const { verifyTurnstile } = require('../utils/turnstile');
 
 async function getRegister(req, res) {
@@ -134,12 +135,8 @@ async function postForgotPassword(req, res) {
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
     const resetUrl = `${appUrl}/reset-password/${token}`;
 
-    await sendEmail(user.email, 'Reset your HelloTasks password', `
-      <p>Hi ${user.fullName},</p>
-      <p>You requested a password reset for your HelloTasks account.</p>
-      <p><a href="${resetUrl}" style="color:#4f46e5;font-weight:600;">Reset my password</a></p>
-      <p>This link expires in 1 hour. If you didn't request this, you can safely ignore it.</p>
-    `);
+    await sendEmail(user.email, 'Reset your HelloTasks password',
+      passwordResetEmail(user.fullName, resetUrl));
 
     req.session.flash = { success: successMsg };
     res.redirect('/forgot-password');

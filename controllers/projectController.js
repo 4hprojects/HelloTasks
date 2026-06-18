@@ -9,6 +9,8 @@ const Notification = require('../models/Notification');
 const supabase = require('../config/supabase');
 const slugify = require('../utils/slugify');
 const { sendEmail } = require('../services/emailService');
+const { projectInviteEmail } = require('../services/emailTemplates');
+const { audit } = require('../utils/audit');
 const { canManage: roleCanManage, normalizeRole, isSystemAdmin, MANAGER_ROLES, ALL_PROJECT_ROLES } = require('../utils/roles');
 
 async function uniqueSlug(base, excludeId = null) {
@@ -197,6 +199,11 @@ async function deleteProject(req, res) {
   ]);
 
   await Project.findByIdAndDelete(projectId);
+
+  await audit('project_deleted', req.user, {
+    targetType: 'project', targetId: projectId, targetName: project.name
+  });
+
   req.session.flash = { success: `Project "${project.name}" deleted.` };
   res.redirect('/projects');
 }
@@ -253,6 +260,11 @@ async function removeMember(req, res) {
 
   project.members = project.members.filter(m => m.user.toString() !== userId);
   await project.save();
+
+  await audit('member_removed', req.user, {
+    targetType: 'user', targetId: userId,
+    projectId: project._id, meta: { projectName: project.name }
+  });
 
   req.session.flash = { success: 'Member removed.' };
   res.redirect(`/projects/${project._id}`);
@@ -321,26 +333,10 @@ async function inviteMember(req, res) {
 
   const appUrl = process.env.APP_URL || 'http://localhost:3000';
   const acceptLink = `${appUrl}/accept-invite/${token}`;
-  const html = `
-    <div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;">
-      <p>Hi ${cleanName},</p>
-      <p><strong>${req.user.fullName}</strong> has invited you to collaborate on
-         <strong>${project.name}</strong> in HelloTasks.</p>
-      <p>Click below to set up your account and get started. This link expires in 72 hours.</p>
-      <p style="margin:1.5rem 0;">
-        <a href="${acceptLink}"
-           style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">
-          Accept Invitation
-        </a>
-      </p>
-      <p style="color:#64748B;font-size:0.875rem;">
-        If you weren't expecting this invitation, you can safely ignore this email.
-      </p>
-    </div>
-  `;
 
   try {
-    await sendEmail(cleanEmail, `You've been invited to collaborate on ${project.name}`, html);
+    await sendEmail(cleanEmail, `You've been invited to collaborate on ${project.name}`,
+      projectInviteEmail(cleanName, req.user.fullName, project.name, acceptLink));
     req.session.flash = { success: `Invitation sent to ${cleanEmail}. They've been added as a pending member.` };
   } catch (err) {
     console.error('Invite email failed:', err);

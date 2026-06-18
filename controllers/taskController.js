@@ -8,12 +8,9 @@ const supabase = require('../config/supabase');
 const { formatSize } = require('./fileController');
 const { notify, notifyMany } = require('../utils/notify');
 const { sendEmail } = require('../services/emailService');
+const { taskEmail: taskEmailHtml } = require('../services/emailTemplates');
 const { isSystemAdmin, MANAGER_ROLES, ELEVATED_ROLES } = require('../utils/roles');
-
-function taskEmailHtml(recipientName, message, taskPath) {
-  const url = `${process.env.APP_URL || 'http://localhost:3000'}${taskPath}`;
-  return `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;"><p>Hi ${recipientName},</p><p>${message}</p><p style="margin:1.5rem 0;"><a href="${url}" style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">View Task</a></p><p style="color:#64748B;font-size:0.875rem;">— HelloTasks</p></div>`;
-}
+const { audit } = require('../utils/audit');
 
 async function sendTaskEmail(to, subject, html) {
   try { await sendEmail(to, subject, html); }
@@ -111,6 +108,10 @@ async function createTask(req, res) {
 
   if (!title || !title.trim()) errors.push('Task title is required.');
   if (externalUrl && !validateExternalUrl(externalUrl)) errors.push('External URL must start with http:// or https://');
+  if (assigneeId) {
+    const isMember = req.project.members.some(m => (m.user._id || m.user).toString() === assigneeId);
+    if (!isMember) errors.push('Assignee must be a member of this project.');
+  }
 
   if (errors.length) {
     const members = req.project.members.filter(m => m.role !== 'viewer');
@@ -255,6 +256,10 @@ async function updateTask(req, res) {
 
   if (!title || !title.trim()) errors.push('Task title is required.');
   if (externalUrl && !validateExternalUrl(externalUrl)) errors.push('External URL must start with http:// or https://');
+  if (assigneeId) {
+    const isMember = req.project.members.some(m => (m.user._id || m.user).toString() === assigneeId);
+    if (!isMember) errors.push('Assignee must be a member of this project.');
+  }
 
   if (errors.length) {
     const members = req.project.members.filter(m => m.role !== 'viewer');
@@ -459,6 +464,11 @@ async function deleteTask(req, res) {
     Notification.deleteMany({ task: taskId }),
     Task.findByIdAndDelete(taskId),
   ]);
+
+  await audit('task_deleted', req.user, {
+    targetType: 'task', targetId: taskId, targetName: title,
+    projectId: req.project._id
+  });
 
   req.session.flash = { success: `Task "${title}" permanently deleted.` };
   res.redirect(`/projects/${req.project._id}/tasks`);

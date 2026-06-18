@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { notify } = require('../utils/notify');
 const { sendEmail } = require('../services/emailService');
+const { accountActivatedEmail, systemInviteEmail } = require('../services/emailTemplates');
+const { audit } = require('../utils/audit');
 const { ROLE_LABELS: ROLE_LABELS_MAP } = require('../utils/roles');
 
 // Labels for every valid globalRole value (legacy + canonical)
@@ -66,9 +68,17 @@ async function updateUser(req, res) {
   const validRoles = ['system_admin', 'super_admin', 'owner', 'manager', 'project_lead', 'quality_manager', 'member', 'developer', 'viewer'];
   const validStatuses = ['pending', 'active', 'suspended'];
 
+  const oldRole = user.globalRole;
   if (globalRole && validRoles.includes(globalRole)) user.globalRole = globalRole;
   if (accountStatus && validStatuses.includes(accountStatus)) user.accountStatus = accountStatus;
   await user.save();
+
+  if (globalRole && validRoles.includes(globalRole) && globalRole !== oldRole) {
+    await audit('role_changed', req.user, {
+      targetType: 'user', targetId: user._id, targetName: user.fullName,
+      meta: { oldRole, newRole: globalRole }
+    });
+  }
 
   // Notify + email user when their account is activated
   if (!wasActive && user.accountStatus === 'active') {
@@ -80,7 +90,7 @@ async function updateUser(req, res) {
       await sendEmail(
         user.email,
         'Your HelloTasks account has been activated',
-        `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;"><p>Hi ${user.fullName},</p><p>Your HelloTasks account has been activated. You can now log in and get started.</p><p style="margin:1.5rem 0;"><a href="${appUrl}/login" style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Log In</a></p><p style="color:#64748B;font-size:0.875rem;">— HelloTasks</p></div>`
+        accountActivatedEmail(user.fullName, `${appUrl}/login`)
       );
     } catch (err) {
       console.error('Account activation email failed:', err.message);
@@ -138,12 +148,8 @@ async function postInviteUser(req, res) {
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
     const inviteUrl = `${appUrl}/accept-invite/${token}`;
 
-    await sendEmail(user.email, 'You\'ve been invited to HelloTasks', `
-      <p>Hi ${user.fullName},</p>
-      <p>You've been invited to join HelloTasks by an administrator.</p>
-      <p><a href="${inviteUrl}" style="color:#4f46e5;font-weight:600;">Accept your invitation</a></p>
-      <p>This link expires in 72 hours.</p>
-    `);
+    await sendEmail(user.email, "You've been invited to HelloTasks",
+      systemInviteEmail(user.fullName, inviteUrl));
 
     req.session.flash = { success: `Invitation sent to ${user.email}.` };
     res.redirect('/users');

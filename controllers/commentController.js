@@ -2,11 +2,7 @@ const Comment = require('../models/Comment');
 const Task = require('../models/Task');
 const { notify, notifyMany } = require('../utils/notify');
 const { sendEmail } = require('../services/emailService');
-
-function mentionEmailHtml(recipientName, authorName, taskTitle, projectName, commentPath) {
-  const url = `${process.env.APP_URL || 'http://localhost:3000'}${commentPath}`;
-  return `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;color:#0F172A;"><p>Hi ${recipientName},</p><p><strong>${authorName}</strong> mentioned you in a comment on <strong>${taskTitle}</strong> in <strong>${projectName}</strong>.</p><p style="margin:1.5rem 0;"><a href="${url}" style="display:inline-block;padding:10px 24px;background:#1E40AF;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">View Comment</a></p><p style="color:#64748B;font-size:0.875rem;">— HelloTasks</p></div>`;
-}
+const { mentionEmail: mentionEmailHtml } = require('../services/emailTemplates');
 
 async function safeSend(to, subject, html) {
   try { await sendEmail(to, subject, html); }

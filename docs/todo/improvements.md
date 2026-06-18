@@ -111,11 +111,11 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 |---|---|
 | ~~High~~ | ~~Validate required environment variables at startup~~ ✅ Done 2026-06-18 |
 | ~~High~~ | ~~Add Morgan HTTP request logging middleware to server.js~~ ✅ Done 2026-06-18 |
-| Medium | Centralise email HTML into reusable template functions or a templates/ folder — currently inlined in multiple controllers |
-| Medium | Add audit logging for critical actions: delete task, delete project, remove member, change user role |
+| ~~Medium~~ | ~~Centralise email HTML into reusable template functions or a templates/ folder — currently inlined in multiple controllers~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Add audit logging for critical actions: delete task, delete project, remove member, change user role~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Standardise role checking to always use utils/roles.js — some controllers still hardcode role name arrays~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Add cascade delete hooks: deleting a project should clean up its tasks, comments, files, and notifications~~ ✅ Done 2026-06-18 |
-| Medium | Validate that task assignee is a member of the project before saving |
+| ~~Medium~~ | ~~Validate that task assignee is a member of the project before saving~~ ✅ Done 2026-06-18 |
 | Low | Replace magic numbers with named constants: 72h invite expiry, 100 notification limit, 8:00 AM cron time |
 | Low | Add request correlation IDs to log entries for tracing errors in production |
 
