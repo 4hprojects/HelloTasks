@@ -26,11 +26,11 @@
     <div class="task-show-hero-actions">
       <a href="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
       <% if (['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole)) { %>
-        <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/archive" class="inline-form" onsubmit="return confirm('Archive this task?')">
+        <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/archive" class="inline-form" data-confirm="Archive this task?">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn btn--ghost btn--sm">Archive</button>
         </form>
-        <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/delete" class="inline-form" onsubmit="return confirm('Permanently delete this task? This cannot be undone.')">
+        <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/delete" class="inline-form" data-confirm="Permanently delete this task? This cannot be undone.">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn btn--danger btn--sm">Delete</button>
         </form>
@@ -181,7 +181,7 @@
                   </div>
                   <% const canDeleteFile = f.uploadedBy._id.toString() === user._id.toString() || ['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole); %>
                   <% if (canDeleteFile) { %>
-                    <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files/<%= f._id %>/delete" class="inline-form" onsubmit="return confirm('Delete this file?')">
+                    <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files/<%= f._id %>/delete" class="inline-form" data-confirm="Delete this file?">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="file-delete-btn" title="Delete file" aria-label="Delete file">
                         <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
@@ -219,7 +219,7 @@
                   <span class="comment-date"><%= new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
                   <% const canDeleteComment = c.author._id.toString() === user._id.toString() || ['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole); %>
                   <% if (canDeleteComment) { %>
-                    <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments/<%= c._id %>/delete" class="inline-form comment-delete-form" onsubmit="return confirm('Delete this comment?')">
+                    <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments/<%= c._id %>/delete" class="inline-form comment-delete-form" data-confirm="Delete this comment?">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn--comment-delete" aria-label="Delete comment">×</button>
                     </form>

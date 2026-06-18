@@ -2,7 +2,9 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
 const FileRecord = require('../models/FileRecord');
+const Notification = require('../models/Notification');
 const Project = require('../models/Project');
+const supabase = require('../config/supabase');
 const { formatSize } = require('./fileController');
 const { notify, notifyMany } = require('../utils/notify');
 const { sendEmail } = require('../services/emailService');
@@ -429,8 +431,22 @@ async function deleteTask(req, res) {
   if (!['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
+  const taskId = req.task._id;
   const title = req.task.title;
-  await Task.findByIdAndDelete(req.task._id);
+
+  const files = await FileRecord.find({ task: taskId }).select('bucket filePath').lean();
+  for (const f of files) {
+    try { await supabase.storage.from(f.bucket).remove([f.filePath]); }
+    catch (err) { console.error('Storage delete error on task delete:', err.message); }
+  }
+
+  await Promise.all([
+    Comment.deleteMany({ task: taskId }),
+    FileRecord.deleteMany({ task: taskId }),
+    Notification.deleteMany({ task: taskId }),
+    Task.findByIdAndDelete(taskId),
+  ]);
+
   req.session.flash = { success: `Task "${title}" permanently deleted.` };
   res.redirect(`/projects/${req.project._id}/tasks`);
 }

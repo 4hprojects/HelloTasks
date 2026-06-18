@@ -41,7 +41,7 @@
     <a href="/projects" class="back-link" style="margin-bottom:0">← Projects</a>
     <% if (canManage) { %>
       <a href="/projects/<%= project._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
-      <form method="POST" action="/projects/<%= project._id %>/delete" onsubmit="return confirm('Delete this project? This cannot be undone.')">
+      <form method="POST" action="/projects/<%= project._id %>/delete" data-confirm="Delete this project? This cannot be undone.">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button type="submit" class="btn btn--danger btn--sm">Delete</button>
       </form>
@@ -100,7 +100,7 @@
                     <form method="POST" action="/projects/<%= project._id %>/members/remove" class="inline-form">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <input type="hidden" name="userId" value="<%= m.user._id %>" />
-                      <button type="submit" class="proj-edit-btn text-danger" onclick="return confirm('Remove this member?')" title="Remove member">
+                      <button type="submit" class="proj-edit-btn text-danger" title="Remove member" data-confirm="Remove this member?">
                         <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                       </button>
                     </form>

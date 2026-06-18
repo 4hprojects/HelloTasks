@@ -47,6 +47,12 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Kanban: fixed column widths force overflow so scroll engages */
+  .kanban-board {
+    grid-template-columns: repeat(7, 200px);
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (max-width: 640px) {

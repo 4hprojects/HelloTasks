@@ -82,4 +82,47 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.textContent = btn.dataset.loadingText;
     btn.disabled = true;
   });
+
+  // Confirmation modal — runs in capture phase so it fires before the loading spinner
+  const confirmModal = document.getElementById('confirmModal');
+  if (confirmModal) {
+    const confirmMsg = document.getElementById('confirmModalMsg');
+    const confirmOk = document.getElementById('confirmModalOk');
+    const confirmCancel = document.getElementById('confirmModalCancel');
+    let pendingForm = null;
+
+    function openModal(form, message) {
+      pendingForm = form;
+      confirmMsg.textContent = message;
+      confirmModal.classList.add('is-open');
+    }
+    function closeModal() {
+      confirmModal.classList.remove('is-open');
+      pendingForm = null;
+    }
+
+    // Intercept form submits with data-confirm (capture phase = before loading spinner)
+    document.addEventListener('submit', (e) => {
+      if (!e.target.dataset.confirm) return;
+      e.preventDefault();
+      openModal(e.target, e.target.dataset.confirm);
+    }, true);
+
+    // Intercept buttons with data-confirm (e.g. remove member button)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-confirm]');
+      if (!btn) return;
+      const form = btn.closest('form');
+      if (!form) return;
+      e.preventDefault();
+      openModal(form, btn.dataset.confirm);
+    });
+
+    confirmOk.addEventListener('click', () => {
+      closeModal();
+      if (pendingForm) pendingForm.submit();
+    });
+    confirmCancel.addEventListener('click', closeModal);
+    confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) closeModal(); });
+  }
 });

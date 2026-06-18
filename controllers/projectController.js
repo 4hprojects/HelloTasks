@@ -3,6 +3,10 @@ const bcrypt = require('bcryptjs');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Comment = require('../models/Comment');
+const FileRecord = require('../models/FileRecord');
+const Notification = require('../models/Notification');
+const supabase = require('../config/supabase');
 const slugify = require('../utils/slugify');
 const { sendEmail } = require('../services/emailService');
 const { canManage: roleCanManage, normalizeRole } = require('../utils/roles');
@@ -178,7 +182,25 @@ async function deleteProject(req, res) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
 
-  await Project.findByIdAndDelete(req.params.id);
+  const projectId = project._id;
+  const tasks = await Task.find({ project: projectId }).select('_id').lean();
+  const taskIds = tasks.map(t => t._id);
+
+  // Delete Supabase storage files
+  const files = await FileRecord.find({ project: projectId }).select('bucket filePath').lean();
+  for (const f of files) {
+    try { await supabase.storage.from(f.bucket).remove([f.filePath]); }
+    catch (err) { console.error('Storage delete error on project delete:', err.message); }
+  }
+
+  await Promise.all([
+    Comment.deleteMany({ task: { $in: taskIds } }),
+    FileRecord.deleteMany({ project: projectId }),
+    Notification.deleteMany({ $or: [{ project: projectId }, { task: { $in: taskIds } }] }),
+    Task.deleteMany({ project: projectId }),
+  ]);
+
+  await Project.findByIdAndDelete(projectId);
   req.session.flash = { success: `Project "${project.name}" deleted.` };
   res.redirect('/projects');
 }
