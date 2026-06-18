@@ -19,6 +19,7 @@
 <% } %>
 
 <form method="POST" action="/users/invite" novalidate class="task-form-layout">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
   <!-- Main fields -->
   <div class="task-form-main">

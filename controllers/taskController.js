@@ -76,7 +76,12 @@ function getAvailableTransitions(projectRole, currentStatus) {
 
 function validateExternalUrl(url) {
   if (!url) return true;
-  return /^https?:\/\//i.test(url);
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 // GET /projects/:projectId/tasks/new

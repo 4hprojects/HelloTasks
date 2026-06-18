@@ -59,6 +59,7 @@
         <p class="text-secondary text-sm" style="margin-bottom:1rem;">You cannot change your own role or status.</p>
       <% } %>
       <form action="/users/<%= targetUser._id %>" method="POST" class="form-stack">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="form-group">
           <label class="form-label" for="globalRole">Global Role</label>
           <select id="globalRole" name="globalRole" class="form-select" <%= isSelf ? 'disabled' : '' %>>

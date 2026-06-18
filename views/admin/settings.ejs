@@ -14,6 +14,7 @@
     </div>
     <div class="panel-body">
       <form method="POST" action="/admin/settings" novalidate class="form-stack">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="form-group">
           <label for="appName" class="form-label">App Name</label>
           <input type="text" id="appName" name="appName" class="form-input" value="<%= settings.appName %>" placeholder="HelloTasks" />
@@ -58,6 +59,7 @@
         <dd>HTML email via Resend</dd>
       </dl>
       <form method="POST" action="/admin/weekly-report" onsubmit="return confirm('Send the weekly report now to all System Admins and Project Leads?');">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button type="submit" class="btn btn--primary btn--sm">Send Weekly Report Now</button>
       </form>
     </div>
@@ -90,6 +92,7 @@
           <p class="form-hint">Disable open registration to prevent new self-registrations. Existing accounts are unaffected.</p>
         </div>
         <form method="POST" action="/admin/settings" onsubmit="return confirm('Toggle open registration?');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <input type="hidden" name="appName" value="<%= settings.appName %>" />
           <input type="hidden" name="supportEmail" value="<%= settings.supportEmail %>" />
           <input type="hidden" name="weeklyReportNote" value="<%= settings.weeklyReportNote %>" />

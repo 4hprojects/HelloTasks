@@ -24,7 +24,7 @@ async function addComment(req, res) {
     return res.redirect(`/projects/${projectId}/tasks/${task._id}`);
   }
 
-  const trimmedContent = content.trim();
+  const trimmedContent = content.trim().replace(/<[^>]*>/g, '');
 
   await Comment.create({
     task: task._id,

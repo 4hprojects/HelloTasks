@@ -16,6 +16,7 @@
 <% } %>
 
 <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="task-form-layout">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
   <!-- Main fields -->
   <div class="task-form-main">

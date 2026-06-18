@@ -8,6 +8,7 @@
   </div>
 
   <form method="POST" action="/register" class="auth-form" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="form-row">
       <div class="form-group">
         <div class="form-float">

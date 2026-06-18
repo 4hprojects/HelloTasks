@@ -27,9 +27,11 @@
       <a href="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
       <% if (['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole)) { %>
         <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/archive" class="inline-form" onsubmit="return confirm('Archive this task?')">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn btn--ghost btn--sm">Archive</button>
         </form>
         <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/delete" class="inline-form" onsubmit="return confirm('Permanently delete this task? This cannot be undone.')">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn btn--danger btn--sm">Delete</button>
         </form>
       <% } %>
@@ -79,6 +81,7 @@
         <div class="panel-header"><h3 class="panel-title">Update Status</h3></div>
         <div class="panel-body">
           <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/status" class="status-update-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-row">
               <div class="form-group">
                 <label for="newStatus" class="form-label">Move to</label>
@@ -179,6 +182,7 @@
                   <% const canDeleteFile = f.uploadedBy._id.toString() === user._id.toString() || ['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole); %>
                   <% if (canDeleteFile) { %>
                     <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files/<%= f._id %>/delete" class="inline-form" onsubmit="return confirm('Delete this file?')">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="file-delete-btn" title="Delete file" aria-label="Delete file">
                         <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                       </button>
@@ -191,6 +195,7 @@
         <% } %>
         <div class="panel-section">
           <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/files" enctype="multipart/form-data" class="upload-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="file" name="file" id="fileInput" class="file-input" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.md" required />
             <label for="fileInput" class="file-input-label">Choose file</label>
             <button type="submit" class="btn btn--primary btn--sm" id="uploadBtn" disabled>Upload</button>
@@ -215,6 +220,7 @@
                   <% const canDeleteComment = c.author._id.toString() === user._id.toString() || ['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole); %>
                   <% if (canDeleteComment) { %>
                     <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments/<%= c._id %>/delete" class="inline-form comment-delete-form" onsubmit="return confirm('Delete this comment?')">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button type="submit" class="btn--comment-delete" aria-label="Delete comment">×</button>
                     </form>
                   <% } %>
@@ -235,6 +241,7 @@
         <% } %>
         <div class="panel-section">
           <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/comments" class="comment-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="mention-wrapper">
               <textarea id="commentContent" name="content" class="form-textarea comment-textarea" rows="3" placeholder="Add a comment… type @ to mention someone" required></textarea>
               <div id="mentionDropdown" class="mention-dropdown" style="display:none;"></div>

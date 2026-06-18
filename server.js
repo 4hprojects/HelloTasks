@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
@@ -7,9 +9,20 @@ const path = require('path');
 const connectDB = require('./config/db');
 const { attachUser } = require('./middleware/authMiddleware');
 const { startDueDateReminder } = require('./jobs/dueDateReminder');
+const { generateToken, verifyCsrf } = require('./utils/csrf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(helmet({ contentSecurityPolicy: false }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many attempts — please try again in 15 minutes.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 connectDB();
 startDueDateReminder();
@@ -31,17 +44,20 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7,
     httpOnly: true,
+    sameSite: 'lax',
     secure: process.env.APP_ENV === 'production'
   }
 }));
 
 app.use(attachUser);
+app.use(verifyCsrf);
 
 app.use((req, res, next) => {
   res.locals.flash = req.session.flash || {};
   delete req.session.flash;
   res.locals.currentPath = req.path;
   res.locals.turnstileSiteKey = process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || '';
+  res.locals.csrfToken = generateToken(req);
   next();
 });
 
@@ -50,7 +66,7 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
-app.use('/', require('./routes/authRoutes'));
+app.use('/', authLimiter, require('./routes/authRoutes'));
 app.use('/dashboard', require('./routes/dashboardRoutes'));
 app.use('/notifications', require('./routes/notificationRoutes'));
 app.use('/users', require('./routes/userRoutes'));

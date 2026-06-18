@@ -46,6 +46,7 @@
   </div>
   <% if (unreadCount > 0) { %>
     <form action="/notifications/read-all" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <button type="submit" class="btn btn--sm btn--outline">Mark All Read</button>
     </form>
   <% } %>
@@ -87,6 +88,7 @@
           <% } %>
           <% if (!n.isRead) { %>
             <form action="/notifications/<%= n._id %>/read" method="POST" style="display:inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="notif-read-btn" title="Mark as read">
                 <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><circle cx="10" cy="10" r="4"/></svg>
               </button>
