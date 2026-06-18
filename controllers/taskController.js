@@ -190,6 +190,18 @@ async function getTask(req, res) {
     FileRecord.find({ task: task._id }).populate('uploadedBy', 'fullName').sort({ createdAt: -1 }).lean()
   ]);
 
+  // For confidential tasks, replace permanent public URLs with short-lived signed URLs
+  if (task.isConfidential && files.length > 0) {
+    for (const f of files) {
+      try {
+        const { data } = await supabase.storage.from(f.bucket).createSignedUrl(f.filePath, 3600);
+        if (data?.signedUrl) f.publicUrl = data.signedUrl;
+      } catch (err) {
+        console.error('Signed URL error:', err.message);
+      }
+    }
+  }
+
   res.render('tasks/show', {
     title: task.title,
     project: req.project,

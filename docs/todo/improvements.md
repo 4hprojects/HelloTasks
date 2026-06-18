@@ -16,10 +16,10 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~High~~ | ~~Add `sameSite: 'lax'` to session cookie~~ ✅ Done 2026-06-18 |
 | ~~High~~ | ~~Add account lockout after N failed login attempts~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Fix `res.redirect('back')` in notificationController.js~~ ✅ Done 2026-06-18 |
-| Medium | Invalidate old password reset token when a new one is requested |
-| Medium | Validate file type by extension independently of MIME type — MIME can be spoofed |
-| Medium | Add HTTPS redirect middleware in production (check `APP_ENV=production`) |
-| Medium | Validate confidential file access in fileController — any authenticated user can currently access file URLs directly |
+| ~~Medium~~ | ~~Invalidate old password reset token when a new one is requested~~ ✅ Done 2026-06-18 (already correct — overwrite on reissue) |
+| ~~Medium~~ | ~~Validate file type by extension independently of MIME type — MIME can be spoofed~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Add HTTPS redirect middleware in production (check `APP_ENV=production`)~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Validate confidential file access in fileController — any authenticated user can currently access file URLs directly~~ ✅ Done 2026-06-18 |
 
 ---
 
@@ -58,11 +58,11 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | Priority | Item |
 |---|---|
 | ~~High~~ | ~~Make task list table responsive on mobile~~ ✅ Done 2026-06-18 |
-| High | Make kanban board horizontally scrollable on mobile — currently unusable |
-| High | Add file upload progress indicator — no feedback during upload |
-| Medium | Allow checking off checklist items directly from task show page (currently read-only, must go to edit) |
-| Medium | Show a hint near the comment textarea explaining `@Name` mention support |
-| Medium | Replace browser `confirm()` dialogs with styled custom modal for delete/archive actions |
+| ~~High~~ | ~~Make kanban board horizontally scrollable on mobile — currently unusable~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add file upload progress indicator — no feedback during upload~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Allow checking off checklist items directly from task show page (currently read-only, must go to edit)~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Show a hint near the comment textarea explaining `@Name` mention support~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Replace browser `confirm()` dialogs with styled custom modal for delete/archive actions~~ ✅ Done 2026-06-18 |
 | Medium | Add visual grouping (divider or label) between required and optional fields on task form |
 | Low | Add drag-and-drop to kanban board for status changes |
 | Low | Add bulk actions on task list (select multiple, change status/priority) |
@@ -99,7 +99,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | Priority | Item |
 |---|---|
 | ~~High~~ | ~~Implement loading spinner on button click for async actions~~ ✅ Done 2026-06-18 |
-| Medium | Replace all browser `confirm()` destructive action dialogs with a consistent styled modal |
+| ~~Medium~~ | ~~Replace all browser `confirm()` destructive action dialogs with a consistent styled modal~~ ✅ Done 2026-06-18 |
 | Medium | Add consistent empty-state CTAs across all list views (some have them, some don't) |
 | Low | Add sticky column headers to long tables |
 
@@ -113,8 +113,8 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~High~~ | ~~Add Morgan HTTP request logging middleware to server.js~~ ✅ Done 2026-06-18 |
 | Medium | Centralise email HTML into reusable template functions or a templates/ folder — currently inlined in multiple controllers |
 | Medium | Add audit logging for critical actions: delete task, delete project, remove member, change user role |
-| Medium | Standardise role checking to always use utils/roles.js — some controllers still hardcode role name arrays |
-| Medium | Add cascade delete hooks: deleting a project should clean up its tasks, comments, files, and notifications |
+| ~~Medium~~ | ~~Standardise role checking to always use utils/roles.js — some controllers still hardcode role name arrays~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Add cascade delete hooks: deleting a project should clean up its tasks, comments, files, and notifications~~ ✅ Done 2026-06-18 |
 | Medium | Validate that task assignee is a member of the project before saving |
 | Low | Replace magic numbers with named constants: 72h invite expiry, 100 notification limit, 8:00 AM cron time |
 | Low | Add request correlation IDs to log entries for tracing errors in production |
