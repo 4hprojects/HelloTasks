@@ -11,7 +11,6 @@ const crypto = require('crypto');
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
@@ -47,14 +46,6 @@ if (process.env.APP_ENV === 'production') {
     next();
   });
 }
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: 'Too many attempts — please try again in 15 minutes.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
 
 connectDB();
 startDueDateReminder();
@@ -99,7 +90,7 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
-app.use('/', authLimiter, require('./routes/authRoutes'));
+app.use('/', require('./routes/authRoutes'));
 app.use('/dashboard', require('./routes/dashboardRoutes'));
 app.use('/notifications', require('./routes/notificationRoutes'));
 app.use('/users', require('./routes/userRoutes'));
