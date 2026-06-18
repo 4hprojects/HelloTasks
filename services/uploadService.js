@@ -17,12 +17,19 @@ const ALLOWED_DOC_TYPES = [
   'text/markdown'
 ];
 
+const ALLOWED_EXTENSIONS = new Set([
+  '.jpg', '.jpeg', '.png', '.webp',
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx',
+  '.csv', '.ppt', '.pptx', '.txt', '.md'
+]);
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter(req, file, cb) {
     const allowed = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOC_TYPES];
-    if (allowed.includes(file.mimetype)) return cb(null, true);
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(file.mimetype) && ALLOWED_EXTENSIONS.has(ext)) return cb(null, true);
     cb(new Error('File type not allowed'));
   }
 });

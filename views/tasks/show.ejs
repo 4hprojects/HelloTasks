@@ -52,21 +52,33 @@
       <% } %>
 
       <% if (task.checklist && task.checklist.length > 0) { %>
-      <div class="panel">
+      <div class="panel" id="checklist">
         <div class="panel-header">
           <h3 class="panel-title">Checklist <span class="panel-title-count"><%= task.checklist.filter(c => c.completed).length %>/<%= task.checklist.length %></span></h3>
         </div>
         <div class="panel-body">
           <ul class="checklist">
-            <% task.checklist.forEach(item => { %>
+            <% task.checklist.forEach((item, index) => { %>
               <li class="checklist-item <%= item.completed ? 'completed' : '' %>">
-                <span class="checklist-check">
-                  <% if (item.completed) { %>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                  <% } else { %>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7"/></svg>
-                  <% } %>
-                </span>
+                <% if (canEdit) { %>
+                  <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/checklist/<%= index %>/toggle" class="checklist-toggle-form">
+                    <button type="submit" class="checklist-check checklist-check--btn" aria-label="<%= item.completed ? 'Mark incomplete' : 'Mark complete' %>">
+                      <% if (item.completed) { %>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                      <% } else { %>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7"/></svg>
+                      <% } %>
+                    </button>
+                  </form>
+                <% } else { %>
+                  <span class="checklist-check">
+                    <% if (item.completed) { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    <% } else { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7"/></svg>
+                    <% } %>
+                  </span>
+                <% } %>
                 <%= item.item %>
               </li>
             <% }) %>
@@ -247,6 +259,7 @@
               <div id="mentionDropdown" class="mention-dropdown" style="display:none;"></div>
             </div>
             <div class="comment-form-actions">
+              <span class="form-hint">Type <code>@Name</code> to mention a team member</span>
               <button type="submit" class="btn btn--primary btn--sm" data-loading-text="Posting...">Post Comment</button>
             </div>
           </form>

@@ -9,7 +9,7 @@ const Notification = require('../models/Notification');
 const supabase = require('../config/supabase');
 const slugify = require('../utils/slugify');
 const { sendEmail } = require('../services/emailService');
-const { canManage: roleCanManage, normalizeRole } = require('../utils/roles');
+const { canManage: roleCanManage, normalizeRole, isSystemAdmin, MANAGER_ROLES, ALL_PROJECT_ROLES } = require('../utils/roles');
 
 async function uniqueSlug(base, excludeId = null) {
   let slug = base;
@@ -97,15 +97,14 @@ async function getProject(req, res) {
 
   if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
 
-  const { isSystemAdmin: isSysAdmin } = require('../utils/roles');
-  const sysAdmin = isSysAdmin(req.user);
+  const sysAdmin = isSystemAdmin(req.user);
   const userMember = project.members.find(m => m.user._id.toString() === req.user._id.toString());
 
   if (!sysAdmin && !userMember) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
 
-  const canManage = sysAdmin || (userMember && ['project_lead', 'manager', 'owner'].includes(userMember.role));
+  const canManage = sysAdmin || (userMember && MANAGER_ROLES.includes(userMember.role));
 
   const [allUsers, taskTotal, taskInProgress, taskCompleted, taskBlocked] = await Promise.all([
     canManage
@@ -127,9 +126,8 @@ async function getEditProject(req, res) {
   const project = await Project.findById(req.params.id).lean();
   if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
 
-  const { isSystemAdmin: _isSysAdmin, normalizeRole: _nr } = require('../utils/roles');
   const role = project.members.find(m => m.user.toString() === req.user._id.toString())?.role;
-  if (!_isSysAdmin(req.user) && !['project_lead', 'manager', 'owner'].includes(role)) {
+  if (!isSystemAdmin(req.user) && !MANAGER_ROLES.includes(role)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
 
@@ -140,9 +138,8 @@ async function updateProject(req, res) {
   const project = await Project.findById(req.params.id);
   if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
 
-  const { isSystemAdmin: _sa } = require('../utils/roles');
   const role = project.getMemberRole(req.user._id);
-  if (!_sa(req.user) && !['project_lead', 'manager', 'owner'].includes(role)) {
+  if (!isSystemAdmin(req.user) && !MANAGER_ROLES.includes(role)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
 
@@ -176,9 +173,8 @@ async function deleteProject(req, res) {
   const project = await Project.findById(req.params.id);
   if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
 
-  const { isSystemAdmin: _sa } = require('../utils/roles');
   const role = project.getMemberRole(req.user._id);
-  if (!_sa(req.user) && !['project_lead', 'manager', 'owner'].includes(role)) {
+  if (!isSystemAdmin(req.user) && !MANAGER_ROLES.includes(role)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
 
@@ -214,9 +210,7 @@ async function addMember(req, res) {
   }
 
   const { userId, role } = req.body;
-  const validRoles = ['project_lead', 'manager', 'owner', 'quality_manager', 'developer', 'member', 'viewer'];
-
-  if (!userId || !validRoles.includes(role)) {
+  if (!userId || !ALL_PROJECT_ROLES.includes(role)) {
     req.session.flash = { error: 'Invalid user or role.' };
     return res.redirect(`/projects/${project._id}`);
   }
@@ -249,11 +243,10 @@ async function removeMember(req, res) {
 
   const { userId } = req.body;
 
-  const managerRoles = ['project_lead', 'manager', 'owner'];
-  const leads = project.members.filter(m => managerRoles.includes(m.role));
+  const leads = project.members.filter(m => MANAGER_ROLES.includes(m.role));
   const targetMember = project.members.find(m => m.user.toString() === userId);
 
-  if (targetMember && managerRoles.includes(targetMember.role) && leads.length === 1) {
+  if (targetMember && MANAGER_ROLES.includes(targetMember.role) && leads.length === 1) {
     req.session.flash = { error: 'Cannot remove the only Project Lead.' };
     return res.redirect(`/projects/${project._id}`);
   }
@@ -274,9 +267,7 @@ async function inviteMember(req, res) {
   }
 
   const { email, fullName, role } = req.body;
-  const validRoles = ['project_lead', 'manager', 'owner', 'quality_manager', 'developer', 'member', 'viewer'];
-
-  if (!email || !email.trim() || !fullName || !fullName.trim() || !validRoles.includes(role)) {
+  if (!email || !email.trim() || !fullName || !fullName.trim() || !ALL_PROJECT_ROLES.includes(role)) {
     req.session.flash = { error: 'Email, name, and a valid role are required.' };
     return res.redirect(`/projects/${project._id}`);
   }

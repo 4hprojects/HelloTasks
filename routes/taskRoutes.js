@@ -4,7 +4,7 @@ const { isAuthenticated } = require('../middleware/authMiddleware');
 const { requireProjectMember, loadTask } = require('../middleware/projectMiddleware');
 const {
   getNewTask, createTask, getTask, getEditTask, updateTask,
-  updateStatus, archiveTask, deleteTask, listTasks
+  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks
 } = require('../controllers/taskController');
 const { addComment, deleteComment } = require('../controllers/commentController');
 const { handleUpload, deleteFile } = require('../controllers/fileController');
@@ -21,6 +21,7 @@ router.post('/:taskId/edit', loadTask, updateTask);
 router.post('/:taskId/status', loadTask, updateStatus);
 router.post('/:taskId/archive', loadTask, archiveTask);
 router.post('/:taskId/delete', loadTask, deleteTask);
+router.post('/:taskId/checklist/:index/toggle', loadTask, toggleChecklistItem);
 
 // Comments
 router.post('/:taskId/comments', loadTask, addComment);

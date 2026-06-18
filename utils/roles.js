@@ -64,6 +64,11 @@ const ROLE_LABELS = {
 // Canonical workspace roles in display order
 const WORKSPACE_ROLES = ['owner', 'manager', 'quality_manager', 'member', 'viewer'];
 
+// Named role sets — use these in controllers instead of inline arrays
+const MANAGER_ROLES = ['project_lead', 'manager', 'owner'];
+const ELEVATED_ROLES = ['system_admin', 'super_admin', 'owner', 'manager', 'project_lead', 'quality_manager'];
+const ALL_PROJECT_ROLES = ['project_lead', 'manager', 'owner', 'quality_manager', 'developer', 'member', 'viewer'];
+
 // Normalise a role value (old or new) to its canonical form
 function normalizeRole(role) {
   return ROLE_ALIASES[role] || role || 'viewer';
@@ -136,6 +141,9 @@ module.exports = {
   PERMISSIONS,
   ROLE_LABELS,
   WORKSPACE_ROLES,
+  MANAGER_ROLES,
+  ELEVATED_ROLES,
+  ALL_PROJECT_ROLES,
   normalizeRole,
   can,
   isSystemAdmin,

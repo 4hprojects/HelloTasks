@@ -8,6 +8,7 @@ const supabase = require('../config/supabase');
 const { formatSize } = require('./fileController');
 const { notify, notifyMany } = require('../utils/notify');
 const { sendEmail } = require('../services/emailService');
+const { isSystemAdmin, MANAGER_ROLES, ELEVATED_ROLES } = require('../utils/roles');
 
 function taskEmailHtml(recipientName, message, taskPath) {
   const url = `${process.env.APP_URL || 'http://localhost:3000'}${taskPath}`;
@@ -172,13 +173,13 @@ async function createTask(req, res) {
 async function getTask(req, res) {
   const task = req.task;
   const canSeeContent = task.isVisibleTo(req.user) ||
-    ['system_admin','super_admin','owner','manager','project_lead','quality_manager'].includes(req.projectRole);
+    ELEVATED_ROLES.includes(req.projectRole);
 
   if (!canSeeContent) {
     return res.render('tasks/locked', { title: 'Confidential Task', project: req.project });
   }
 
-  const canEdit = ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole) ||
+  const canEdit = MANAGER_ROLES.includes(req.projectRole) || isSystemAdmin(req.user) ||
     (['developer','member'].includes(req.projectRole) && task.assignee &&
       task.assignee._id.toString() === req.user._id.toString());
 
@@ -206,7 +207,7 @@ async function getTask(req, res) {
 // GET /projects/:projectId/tasks/:taskId/edit
 async function getEditTask(req, res) {
   const task = req.task;
-  const canEdit = ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole) ||
+  const canEdit = MANAGER_ROLES.includes(req.projectRole) || isSystemAdmin(req.user) ||
     (['developer','member'].includes(req.projectRole) && task.assignee &&
       task.assignee._id.toString() === req.user._id.toString());
 
@@ -230,7 +231,7 @@ async function getEditTask(req, res) {
 // POST /projects/:projectId/tasks/:taskId/edit
 async function updateTask(req, res) {
   const task = req.task;
-  const canEdit = ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole) ||
+  const canEdit = MANAGER_ROLES.includes(req.projectRole) || isSystemAdmin(req.user) ||
     (['developer','member'].includes(req.projectRole) && task.assignee &&
       task.assignee._id.toString() === req.user._id.toString());
 
@@ -313,7 +314,7 @@ async function updateStatus(req, res) {
   // Record QA review when QM approves or returns (use newStatus before auto-complete conversion)
   if (task.status === 'ready_for_review' &&
     ['approved', 'returned_for_refinement'].includes(newStatus) &&
-    ['quality_manager','system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
+    ELEVATED_ROLES.includes(req.projectRole)) {
     task.qaReview = {
       reviewedBy: req.user._id,
       decision: newStatus === 'returned_for_refinement' ? 'returned' : 'approved',
@@ -325,13 +326,13 @@ async function updateStatus(req, res) {
   // QM approves: respect requiresLeadApproval
   let finalStatus = newStatus;
   if (newStatus === 'approved' && !task.requiresLeadApproval &&
-    ['quality_manager','system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
+    ELEVATED_ROLES.includes(req.projectRole)) {
     finalStatus = 'completed';
   }
 
   // Record lead approval when PL completes an approved task
   if (task.status === 'approved' && finalStatus === 'completed' &&
-    ['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
+    (MANAGER_ROLES.includes(req.projectRole) || isSystemAdmin(req.user))) {
     task.leadApproval = {
       approvedBy: req.user._id,
       note: note || '',
@@ -385,7 +386,7 @@ async function updateStatus(req, res) {
   }
   if (finalStatus === 'approved' && task.requiresLeadApproval) {
     const leadMembers = req.project.members
-      .filter(m => ['project_lead','manager','owner'].includes(m.role) && m.user._id.toString() !== req.user._id.toString());
+      .filter(m => MANAGER_ROLES.includes(m.role) && m.user._id.toString() !== req.user._id.toString());
     await notifyMany(leadMembers.map(m => m.user._id), 'task_approved', `"${task.title}" was approved by QA and needs your sign-off.`, opts);
     await Promise.all(leadMembers.filter(m => m.user.email).map(m =>
       sendTaskEmail(
@@ -414,7 +415,7 @@ async function updateStatus(req, res) {
 
 // POST /projects/:projectId/tasks/:taskId/archive
 async function archiveTask(req, res) {
-  if (!['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
+  if (!MANAGER_ROLES.includes(req.projectRole) && !isSystemAdmin(req.user)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
   const task = req.task;
@@ -428,7 +429,7 @@ async function archiveTask(req, res) {
 
 // POST /projects/:projectId/tasks/:taskId/delete
 async function deleteTask(req, res) {
-  if (!['system_admin','super_admin','owner','manager','project_lead'].includes(req.projectRole)) {
+  if (!MANAGER_ROLES.includes(req.projectRole) && !isSystemAdmin(req.user)) {
     return res.status(403).render('errors/403', { title: '403 Forbidden' });
   }
   const taskId = req.task._id;
@@ -449,6 +450,30 @@ async function deleteTask(req, res) {
 
   req.session.flash = { success: `Task "${title}" permanently deleted.` };
   res.redirect(`/projects/${req.project._id}/tasks`);
+}
+
+// POST /projects/:projectId/tasks/:taskId/checklist/:index/toggle
+async function toggleChecklistItem(req, res) {
+  const task = req.task;
+  const canEdit = MANAGER_ROLES.includes(req.projectRole) || isSystemAdmin(req.user) ||
+    (['developer','member'].includes(req.projectRole) && task.assignee &&
+      task.assignee._id.toString() === req.user._id.toString());
+
+  if (!canEdit) {
+    req.session.flash = { error: 'You cannot edit this task.' };
+    return res.redirect(`/projects/${req.project._id}/tasks/${task._id}`);
+  }
+
+  const index = parseInt(req.params.index, 10);
+  if (isNaN(index) || index < 0 || index >= task.checklist.length) {
+    req.session.flash = { error: 'Invalid checklist item.' };
+    return res.redirect(`/projects/${req.project._id}/tasks/${task._id}`);
+  }
+
+  task.checklist[index].completed = !task.checklist[index].completed;
+  await task.save();
+
+  res.redirect(`/projects/${req.project._id}/tasks/${task._id}#checklist`);
 }
 
 // GET /projects/:projectId/tasks
@@ -480,7 +505,7 @@ async function listTasks(req, res) {
 
   const visibleTasks = tasks.map(t => ({
     ...t,
-    visible: !t.isConfidential || ['system_admin','super_admin','owner','manager','project_lead','quality_manager'].includes(req.projectRole) ||
+    visible: !t.isConfidential || ELEVATED_ROLES.includes(req.projectRole) ||
       (t.assignee && t.assignee._id.toString() === req.user._id.toString()) ||
       t.createdBy._id.toString() === req.user._id.toString()
   }));
@@ -516,7 +541,7 @@ async function getKanban(req, res) {
     .populate('assignee', 'fullName')
     .lean();
 
-  const canSeeConfidential = ['system_admin','super_admin','owner','manager','project_lead','quality_manager'].includes(req.projectRole);
+  const canSeeConfidential = ELEVATED_ROLES.includes(req.projectRole);
 
   const columns = COLUMNS.map(col => ({
     ...col,
@@ -599,5 +624,5 @@ async function listAllTasks(req, res) {
 
 module.exports = {
   getNewTask, createTask, getTask, getEditTask, updateTask,
-  updateStatus, archiveTask, deleteTask, listTasks, getKanban, listAllTasks
+  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks, getKanban, listAllTasks
 };
