@@ -1524,3 +1524,26 @@
   justify-content: flex-end;
   gap: 0.5rem;
 }
+
+/* ── Upload progress bar ── */
+.upload-progress {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  margin-top: 0.625rem;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.upload-progress.is-active {
+  opacity: 1;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width 0.15s ease;
+}

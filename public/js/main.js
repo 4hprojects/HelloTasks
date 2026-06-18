@@ -17,10 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // File input — update label and enable upload button
+  // File input — update label, enable button, and show upload progress
   const fileInput = document.getElementById('fileInput');
   const fileLabel = document.querySelector('.file-input-label');
   const uploadBtn = document.getElementById('uploadBtn');
+  const uploadForm = document.querySelector('.upload-form');
+
   if (fileInput && fileLabel && uploadBtn) {
     fileInput.addEventListener('change', () => {
       if (fileInput.files.length > 0) {
@@ -30,6 +32,51 @@ document.addEventListener('DOMContentLoaded', () => {
         fileLabel.textContent = 'Choose file';
         uploadBtn.disabled = true;
       }
+    });
+  }
+
+  if (uploadForm) {
+    // Inject progress bar markup
+    const progressWrap = document.createElement('div');
+    progressWrap.className = 'upload-progress';
+    progressWrap.setAttribute('aria-hidden', 'true');
+    progressWrap.innerHTML = '<div class="upload-progress-bar"></div>';
+    uploadForm.appendChild(progressWrap);
+
+    uploadForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const bar = progressWrap.querySelector('.upload-progress-bar');
+      bar.style.width = '0%';
+      progressWrap.classList.add('is-active');
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Uploading...';
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (ev) => {
+        if (ev.lengthComputable) {
+          const pct = Math.round((ev.loaded / ev.total) * 100);
+          // Cap at 90% — remaining 10% reserved for server-side processing
+          bar.style.width = Math.min(pct * 0.9, 90) + '%';
+          if (pct >= 100) uploadBtn.textContent = 'Processing...';
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        bar.style.width = '100%';
+        setTimeout(() => { window.location.href = xhr.responseURL; }, 250);
+      });
+
+      xhr.addEventListener('error', () => {
+        progressWrap.classList.remove('is-active');
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload';
+        window.location.reload();
+      });
+
+      xhr.open('POST', uploadForm.action);
+      xhr.send(new FormData(uploadForm));
     });
   }
 
