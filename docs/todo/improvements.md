@@ -51,7 +51,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~High~~ | ~~Add `autofocus` to the first field on login, register, forgot-password~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Show a success confirmation page/message after password reset completes (currently just redirects)~~ ✅ Done 2026-06-18 (flash message on login redirect) |
 | ~~Medium~~ | ~~Add client-side email format validation on register and forgot-password before submit~~ ✅ Done 2026-06-18 |
-| Low | Add "Remember me" checkbox on login |
+| ~~Low~~ | ~~Add "Remember me" checkbox on login~~ ✅ Done 2026-06-18 |
 
 ### Tasks
 

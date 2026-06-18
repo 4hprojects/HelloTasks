@@ -42,6 +42,10 @@
         <a href="/forgot-password" class="auth-forgot-inline">Forgot password?</a>
       </div>
     </div>
+    <label class="checkbox-label">
+      <input type="checkbox" name="rememberMe" value="on" />
+      <span>Remember me for 30 days</span>
+    </label>
     <% if (turnstileSiteKey) { %>
       <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-appearance="interaction-only"></div>
     <% } %>

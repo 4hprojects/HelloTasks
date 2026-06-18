@@ -93,6 +93,11 @@ async function postLogin(req, res) {
     await user.save();
 
     req.session.userId = user._id.toString();
+    if (req.body.rememberMe === 'on') {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+    } else {
+      req.session.cookie.expires = false;
+    }
     res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
