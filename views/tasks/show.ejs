@@ -25,6 +25,10 @@
     <% if (canEdit) { %>
     <div class="task-show-hero-actions">
       <a href="/projects/<%= project._id %>/tasks/<%= task._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
+      <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/duplicate" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="btn btn--ghost btn--sm">Duplicate</button>
+      </form>
       <% if (['super_admin','system_admin','project_lead','manager','owner'].includes(projectRole)) { %>
         <form method="POST" action="/projects/<%= project._id %>/tasks/<%= task._id %>/archive" class="inline-form" data-confirm="Archive this task?">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">

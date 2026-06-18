@@ -443,6 +443,28 @@ async function updateStatus(req, res) {
   res.redirect(`/projects/${req.project._id}/tasks/${task._id}`);
 }
 
+// POST /projects/:projectId/tasks/:taskId/duplicate
+async function duplicateTask(req, res) {
+  const src = req.task;
+  const copy = await Task.create({
+    project:             req.project._id,
+    title:               `Copy of ${src.title}`,
+    description:         src.description || '',
+    priority:            src.priority,
+    dueDate:             src.dueDate,
+    externalUrl:         src.externalUrl || '',
+    isConfidential:      src.isConfidential,
+    requiresLeadApproval: src.requiresLeadApproval,
+    checklist:           (src.checklist || []).map(c => ({ item: c.item, completed: false })),
+    status:              'draft',
+    assignee:            null,
+    createdBy:           req.user._id,
+    statusHistory:       [{ status: 'draft', changedBy: req.user._id, note: `Duplicated from task ${src._id}` }]
+  });
+  req.session.flash = { success: `Task duplicated as "${copy.title}".` };
+  res.redirect(`/projects/${req.project._id}/tasks/${copy._id}/edit`);
+}
+
 // POST /projects/:projectId/tasks/:taskId/archive
 async function archiveTask(req, res) {
   if (!MANAGER_ROLES.includes(req.projectRole) && !isSystemAdmin(req.user)) {
@@ -707,5 +729,5 @@ async function listAllTasks(req, res) {
 
 module.exports = {
   getNewTask, createTask, getTask, getEditTask, updateTask,
-  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks, bulkUpdateTasks, getKanban, listAllTasks
+  updateStatus, duplicateTask, archiveTask, deleteTask, toggleChecklistItem, listTasks, bulkUpdateTasks, getKanban, listAllTasks
 };

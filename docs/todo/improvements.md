@@ -66,7 +66,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~Medium~~ | ~~Add visual grouping (divider or label) between required and optional fields on task form~~ ✅ Done 2026-06-18 |
 | ~~Low~~ | ~~Add drag-and-drop to kanban board for status changes~~ ✅ Done 2026-06-18 |
 | ~~Low~~ | ~~Add bulk actions on task list (select multiple, change status/priority)~~ ✅ Done 2026-06-18 |
-| Low | Add task duplication feature |
+| ~~Low~~ | ~~Add task duplication feature~~ ✅ Done 2026-06-18 |
 
 ### Projects
 
