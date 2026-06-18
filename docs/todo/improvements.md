@@ -8,12 +8,12 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| Critical | Add `helmet.js` middleware in server.js — sets X-Frame-Options, X-Content-Type-Options, HSTS, and other security headers |
-| Critical | Add rate limiting on `/login`, `/register`, `/forgot-password` using `express-rate-limit` — brute-force currently unprotected |
-| Critical | Add CSRF protection on all state-changing forms using `csurf` or double-submit cookie pattern |
-| High | Sanitize comment content before saving — current code only trims, no XSS protection |
-| High | Validate External URL field with URL parsing (not just startsWith check) — `javascript:` and `data:` URIs currently not rejected |
-| High | Add `sameSite: 'lax'` to session cookie config in server.js — currently missing |
+| ~~Critical~~ | ~~Add `helmet.js` middleware in server.js~~ ✅ Done 2026-06-18 |
+| ~~Critical~~ | ~~Add rate limiting on auth routes~~ ✅ Done 2026-06-18 |
+| ~~Critical~~ | ~~Add CSRF protection on all state-changing forms~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Sanitize comment content before saving~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Validate External URL field with URL parsing~~ ✅ Done 2026-06-18 |
+| ~~High~~ | ~~Add `sameSite: 'lax'` to session cookie~~ ✅ Done 2026-06-18 |
 | High | Add account lockout after N failed login attempts — no failed-attempt tracking exists |
 | Medium | Fix `res.redirect('back')` in notificationController.js — deprecated and allows open redirect; replace with `/notifications` |
 | Medium | Invalidate old password reset token when a new one is requested |
