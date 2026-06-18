@@ -36,6 +36,13 @@
           <label for="weeklyReportNote" class="form-label">Weekly Report Note <span class="form-label-optional">(optional)</span></label>
           <textarea id="weeklyReportNote" name="weeklyReportNote" class="form-textarea" rows="3" placeholder="A short note included at the top of each weekly report email."><%= settings.weeklyReportNote %></textarea>
         </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="weeklyReportAutoSend" <%= settings.weeklyReportAutoSend ? 'checked' : '' %> />
+            <span>Auto-send weekly report every Monday at 08:00 UTC</span>
+          </label>
+          <p class="form-hint" style="margin-top:0.375rem;">When enabled, the report is automatically emailed to all active Super Admins and Project Leads every Monday morning.</p>
+        </div>
         <div class="form-actions">
           <button type="submit" class="btn btn--primary">Save Settings</button>
         </div>
@@ -93,6 +100,7 @@
           <input type="hidden" name="appName" value="<%= settings.appName %>" />
           <input type="hidden" name="supportEmail" value="<%= settings.supportEmail %>" />
           <input type="hidden" name="weeklyReportNote" value="<%= settings.weeklyReportNote %>" />
+          <% if (settings.weeklyReportAutoSend) { %><input type="hidden" name="weeklyReportAutoSend" value="on" /><% } %>
           <% if (settings.openRegistration) { %>
             <button type="submit" class="btn btn--sm btn--danger-outline">Disable Registration</button>
           <% } else { %>

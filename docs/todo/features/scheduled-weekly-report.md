@@ -2,7 +2,7 @@
 
 **Category:** Automation
 **Priority:** High
-**Status:** Idea
+**Status:** Done — 2026-06-18
 **Effort Estimate:** ~30 min
 
 ## Description

@@ -19,6 +19,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 const { attachUser } = require('./middleware/authMiddleware');
 const { startDueDateReminder } = require('./jobs/dueDateReminder');
+const { startWeeklyReport } = require('./jobs/weeklyReport');
 const { generateToken, verifyCsrf } = require('./utils/csrf');
 
 const app = express();
@@ -57,6 +58,7 @@ const authLimiter = rateLimit({
 
 connectDB();
 startDueDateReminder();
+startWeeklyReport();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
