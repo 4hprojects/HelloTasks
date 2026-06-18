@@ -4,6 +4,7 @@
   const initials     = project.name.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
   const statusBadge  = { active:'success', on_hold:'warning', completed:'primary', archived:'neutral' }[project.status] || 'neutral';
   const statusLabel  = { active:'Active', on_hold:'On Hold', completed:'Completed', archived:'Archived' }[project.status] || project.status;
+  const canDrag      = projectRole !== 'viewer' && project.status !== 'archived';
   const colAccent = {
     draft:       'var(--color-border)',
     assigned:    'var(--color-text-muted)',
@@ -34,9 +35,9 @@
   </div>
 </div>
 
-<div class="kanban-board">
+<div class="kanban-board" data-project-id="<%= project._id %>">
   <% columns.forEach(col => { %>
-    <div class="kanban-col" style="border-top: 3px solid <%= colAccent[col.key] || 'var(--color-border)' %>;">
+    <div class="kanban-col" data-col-key="<%= col.key %>" style="border-top: 3px solid <%= colAccent[col.key] || 'var(--color-border)' %>;">
       <div class="kanban-col-header">
         <span class="kanban-col-title"><%= col.label %></span>
         <span class="kanban-col-count"><%= col.tasks.length %></span>
@@ -62,7 +63,7 @@
               const checklistDone  = task.checklist ? task.checklist.filter(c => c.completed).length : 0;
               const isOverdue      = task.dueDate && new Date(task.dueDate) < new Date();
             %>
-            <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="kanban-card" data-priority="<%= task.priority %>">
+            <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="kanban-card" data-priority="<%= task.priority %>" data-task-id="<%= task._id %>" <%= canDrag ? 'draggable="true"' : '' %>>
               <div class="kanban-card-priority kanban-priority--<%= task.priority %>"></div>
               <div class="kanban-card-body">
                 <p class="kanban-card-title"><%= task.title %></p>
@@ -104,3 +105,92 @@
     </div>
   <% }) %>
 </div>
+
+<% if (canDrag) { %>
+<script>
+(function () {
+  const COL_STATUS = {
+    draft: 'draft', assigned: 'assigned', in_progress: 'in_progress',
+    review: 'ready_for_review', approved: 'approved', done: 'completed', blocked: 'blocked'
+  };
+  const projectId = document.querySelector('.kanban-board').dataset.projectId;
+  const csrf = '<%= csrfToken %>';
+
+  let dragSrc = null;
+  let srcCol  = null;
+
+  function syncEmpty(colBody) {
+    const hasCards = colBody.querySelector('.kanban-card:not(.is-dragging)');
+    const empty = colBody.querySelector('.kanban-empty');
+    if (empty) empty.style.display = hasCards ? 'none' : '';
+  }
+
+  function showToast(msg) {
+    const el = document.createElement('div');
+    el.className = 'kanban-toast';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  document.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragSrc = card;
+      srcCol  = card.closest('.kanban-col-body');
+      card.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.taskId);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('is-dragging');
+      document.querySelectorAll('.kanban-col-body').forEach(c => c.classList.remove('drop-target'));
+      dragSrc = null;
+      srcCol  = null;
+    });
+    card.addEventListener('click', e => {
+      if (card.classList.contains('is-dragging')) e.preventDefault();
+    });
+  });
+
+  document.querySelectorAll('.kanban-col-body').forEach(col => {
+    col.addEventListener('dragover',  e => { e.preventDefault(); col.classList.add('drop-target'); });
+    col.addEventListener('dragleave', e => { if (!col.contains(e.relatedTarget)) col.classList.remove('drop-target'); });
+    col.addEventListener('drop', async e => {
+      e.preventDefault();
+      col.classList.remove('drop-target');
+      if (!dragSrc || col === srcCol) return;
+
+      const taskId    = dragSrc.dataset.taskId;
+      const colKey    = col.closest('.kanban-col').dataset.colKey;
+      const newStatus = COL_STATUS[colKey];
+      if (!newStatus) return;
+
+      const prevCol = srcCol;
+      col.appendChild(dragSrc);
+      syncEmpty(prevCol);
+      syncEmpty(col);
+
+      try {
+        const resp = await fetch(`/projects/${projectId}/tasks/${taskId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: new URLSearchParams({ newStatus, _csrf: csrf })
+        });
+        const data = await resp.json();
+        if (!data.ok) {
+          prevCol.appendChild(dragSrc);
+          syncEmpty(prevCol);
+          syncEmpty(col);
+          showToast(data.error || 'Status change not allowed.');
+        }
+      } catch {
+        prevCol.appendChild(dragSrc);
+        syncEmpty(prevCol);
+        syncEmpty(col);
+        showToast('Request failed. Please try again.');
+      }
+    });
+  });
+})();
+</script>
+<% } %>

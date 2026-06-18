@@ -331,9 +331,11 @@ async function updateTask(req, res) {
 async function updateStatus(req, res) {
   const task = req.task;
   const { newStatus, note } = req.body;
+  const isXhr = req.xhr;
 
   const allowed = getAvailableTransitions(req.projectRole, task.status);
   if (!allowed.includes(newStatus)) {
+    if (isXhr) return res.json({ ok: false, error: 'That status change is not allowed.' });
     req.session.flash = { error: 'That status change is not allowed.' };
     return res.redirect(`/projects/${req.project._id}/tasks/${task._id}`);
   }
@@ -436,6 +438,7 @@ async function updateStatus(req, res) {
     }
   }
 
+  if (isXhr) return res.json({ ok: true, status: finalStatus });
   req.session.flash = { success: `Status updated to "${STATUS_LABELS[finalStatus]}".` };
   res.redirect(`/projects/${req.project._id}/tasks/${task._id}`);
 }
