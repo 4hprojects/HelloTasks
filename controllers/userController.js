@@ -164,8 +164,8 @@ async function postInviteUser(req, res) {
     await sendEmail(user.email, "You've been invited to HelloTasks",
       systemInviteEmail(user.fullName, inviteUrl));
 
-    req.session.flash = { success: `Invitation sent to ${user.email}.` };
-    res.redirect('/users');
+    req.session.flash = { success: `Invitation sent to ${user.email}.`, inviteUrl };
+    res.redirect('/users/invite');
   } catch (err) {
     console.error(err);
     req.session.flash = { error: 'Failed to send invitation. Please try again.' };

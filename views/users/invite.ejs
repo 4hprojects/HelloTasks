@@ -18,6 +18,22 @@
   <div class="alert alert--success"><span><%= success %></span></div>
 <% } %>
 
+<% if (flash && flash.inviteUrl) { %>
+<div class="panel" style="margin-bottom:1.25rem;">
+  <div class="panel-header">
+    <h3 class="panel-title">Invitation Link</h3>
+    <span class="badge badge--success">Sent</span>
+  </div>
+  <div class="panel-body">
+    <p class="form-hint" style="margin-bottom:0.75rem;">Share this link directly if email delivery is delayed. Expires in 72 hours.</p>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <input type="text" class="form-input" value="<%= flash.inviteUrl %>" readonly id="inviteLinkInput" style="font-size:0.8125rem;" />
+      <button type="button" class="btn btn--outline btn--sm" style="white-space:nowrap;" onclick="copyInviteLink(this)">Copy Link</button>
+    </div>
+  </div>
+</div>
+<% } %>
+
 <form method="POST" action="/users/invite" novalidate class="task-form-layout">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
@@ -87,3 +103,14 @@
   </aside>
 
 </form>
+
+<% if (flash && flash.inviteUrl) { %>
+<script>
+function copyInviteLink(btn) {
+  navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy Link'; }, 2000);
+  });
+}
+</script>
+<% } %>
