@@ -89,6 +89,7 @@ async function postLogin(req, res) {
 
     user.failedLoginAttempts = 0;
     user.lockoutUntil = null;
+    user.lastLoginAt = new Date();
     await user.save();
 
     req.session.userId = user._id.toString();

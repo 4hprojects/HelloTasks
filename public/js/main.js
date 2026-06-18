@@ -102,6 +102,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Email format validation — any form with a .email-format-error element
+  document.querySelectorAll('form').forEach((form) => {
+    const emailInput = form.querySelector('input[type="email"]');
+    const emailErr = form.querySelector('.email-format-error');
+    if (!emailInput || !emailErr) return;
+    emailInput.addEventListener('input', () => { emailErr.style.display = 'none'; });
+    form.addEventListener('submit', (e) => {
+      if (e.defaultPrevented) return;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+        e.preventDefault();
+        emailErr.style.display = '';
+        emailInput.focus();
+      }
+    });
+  });
+
   // Auth forms: confirm password client-side validation
   document.querySelectorAll('.auth-form').forEach((form) => {
     const cpwInput = form.querySelector('#confirmPassword');

@@ -87,7 +87,7 @@
         <a href="/tasks" class="btn btn--sm btn--outline">View All</a>
       </div>
       <% if (recentTasks.length === 0) { %>
-        <div class="panel-body"><p class="empty-state">No tasks assigned to you.</p></div>
+        <div class="panel-body"><p class="empty-state">No tasks assigned to you yet. <a href="/tasks" class="subtle-link">Browse all tasks.</a></p></div>
       <% } else { %>
         <div class="panel-body no-padding">
           <table class="data-table data-table--dashboard">

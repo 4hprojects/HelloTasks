@@ -34,7 +34,13 @@
   </div>
 <% } else { %>
 
-  <p class="results-count"><%= projects.length %> project<%= projects.length !== 1 ? 's' : '' %></p>
+  <p class="results-count">
+    <% if (filters.search && projects.length !== total) { %>
+      <%= projects.length %> of <%= total %> project<%= total !== 1 ? 's' : '' %>
+    <% } else { %>
+      <%= projects.length %> project<%= projects.length !== 1 ? 's' : '' %>
+    <% } %>
+  </p>
 
   <div class="project-grid">
     <% projects.forEach(project => { %>

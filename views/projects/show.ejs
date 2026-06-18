@@ -41,6 +41,12 @@
     <a href="/projects" class="back-link" style="margin-bottom:0">← Projects</a>
     <% if (canManage) { %>
       <a href="/projects/<%= project._id %>/edit" class="btn btn--outline btn--sm">Edit</a>
+      <% if (project.status !== 'archived') { %>
+        <form method="POST" action="/projects/<%= project._id %>/archive" data-confirm="Archive this project?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn--ghost btn--sm">Archive</button>
+        </form>
+      <% } %>
       <form method="POST" action="/projects/<%= project._id %>/delete" data-confirm="Delete this project? This cannot be undone.">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button type="submit" class="btn btn--danger btn--sm">Delete</button>
@@ -155,6 +161,7 @@
             <div class="form-group">
               <label class="form-label" for="inviteEmail">Email Address</label>
               <input type="email" id="inviteEmail" name="email" class="form-input" placeholder="jane@example.com" required />
+              <span class="form-error email-format-error" style="display:none">Enter a valid email address.</span>
             </div>
             <div class="form-group">
               <label class="form-label" for="inviteRole">Project Role</label>

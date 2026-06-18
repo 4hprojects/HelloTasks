@@ -5,7 +5,7 @@ const { requireProjectMember } = require('../middleware/projectMiddleware');
 const { getKanban } = require('../controllers/taskController');
 const {
   listProjects, getNewProject, createProject,
-  getProject, getEditProject, updateProject, deleteProject,
+  getProject, getEditProject, updateProject, deleteProject, archiveProject,
   addMember, removeMember, inviteMember
 } = require('../controllers/projectController');
 
@@ -19,6 +19,7 @@ router.post('/new', isAuthenticated, canCreate, createProject);
 router.get('/:id', isAuthenticated, getProject);
 router.get('/:id/edit', isAuthenticated, getEditProject);
 router.post('/:id/edit', isAuthenticated, updateProject);
+router.post('/:id/archive', isAuthenticated, archiveProject);
 router.post('/:id/delete', isAuthenticated, deleteProject);
 router.post('/:id/members', isAuthenticated, addMember);
 router.post('/:id/members/invite', isAuthenticated, inviteMember);

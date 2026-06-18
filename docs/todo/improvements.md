@@ -49,8 +49,8 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | Priority | Item |
 |---|---|
 | ~~High~~ | ~~Add `autofocus` to the first field on login, register, forgot-password~~ ✅ Done 2026-06-18 |
-| Medium | Show a success confirmation page/message after password reset completes (currently just redirects) |
-| Medium | Add client-side email format validation on register and forgot-password before submit |
+| ~~Medium~~ | ~~Show a success confirmation page/message after password reset completes (currently just redirects)~~ ✅ Done 2026-06-18 (flash message on login redirect) |
+| ~~Medium~~ | ~~Add client-side email format validation on register and forgot-password before submit~~ ✅ Done 2026-06-18 |
 | Low | Add "Remember me" checkbox on login |
 
 ### Tasks
@@ -63,7 +63,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~Medium~~ | ~~Allow checking off checklist items directly from task show page (currently read-only, must go to edit)~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Show a hint near the comment textarea explaining `@Name` mention support~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Replace browser `confirm()` dialogs with styled custom modal for delete/archive actions~~ ✅ Done 2026-06-18 |
-| Medium | Add visual grouping (divider or label) between required and optional fields on task form |
+| ~~Medium~~ | ~~Add visual grouping (divider or label) between required and optional fields on task form~~ ✅ Done 2026-06-18 |
 | Low | Add drag-and-drop to kanban board for status changes |
 | Low | Add bulk actions on task list (select multiple, change status/priority) |
 | Low | Add task duplication feature |
@@ -73,17 +73,17 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | Priority | Item |
 |---|---|
 | ~~High~~ | ~~Make project member table responsive on mobile~~ ✅ Done 2026-06-18 |
-| Medium | Add results count to project list filter bar ("Showing X of Y projects") |
-| Medium | Add archive option for projects (soft delete, not permanent delete) |
-| Medium | Add client-side email validation on the "Invite by Email" form before submit |
+| ~~Medium~~ | ~~Add results count to project list filter bar ("Showing X of Y projects")~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Add archive option for projects (soft delete, not permanent delete)~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Add client-side email validation on the "Invite by Email" form before submit~~ ✅ Done 2026-06-18 |
 | Low | Add keyboard navigation to the member add tab toggle |
 
 ### Users & Admin
 
 | Priority | Item |
 |---|---|
-| Medium | Show invite expiry date in user list for pending accounts |
-| Medium | Show "Last active" timestamp on user list for account management |
+| ~~Medium~~ | ~~Show invite expiry date in user list for pending accounts~~ ✅ Done 2026-06-18 |
+| ~~Medium~~ | ~~Show "Last active" timestamp on user list for account management~~ ✅ Done 2026-06-18 |
 | Medium | Add a dry-run preview step before sending weekly report email |
 | Low | Add copy-to-clipboard for invite link in the invite flow |
 
@@ -91,7 +91,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 
 | Priority | Item |
 |---|---|
-| Medium | Auto-dismiss flash messages after a few seconds (with manual close still available) |
+| ~~Medium~~ | ~~Auto-dismiss flash messages after a few seconds (with manual close still available)~~ ✅ Done 2026-06-18 |
 | Low | Add ARIA live region to notification badge so screen readers announce new notifications |
 
 ### General / Cross-Cutting
@@ -100,7 +100,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 |---|---|
 | ~~High~~ | ~~Implement loading spinner on button click for async actions~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Replace all browser `confirm()` destructive action dialogs with a consistent styled modal~~ ✅ Done 2026-06-18 |
-| Medium | Add consistent empty-state CTAs across all list views (some have them, some don't) |
+| ~~Medium~~ | ~~Add consistent empty-state CTAs across all list views (some have them, some don't)~~ ✅ Done 2026-06-18 |
 | Low | Add sticky column headers to long tables |
 
 ---

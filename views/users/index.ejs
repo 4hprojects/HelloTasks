@@ -55,7 +55,7 @@
             <th>User</th>
             <th>Role</th>
             <th>Status</th>
-            <th>Joined</th>
+            <th>Activity</th>
             <th></th>
           </tr>
         </thead>
@@ -92,7 +92,16 @@
                 </span>
               </td>
               <td class="text-secondary text-sm">
-                <%= new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                <% if (u.accountStatus === 'pending' && u.inviteExpires) { %>
+                  <% const _exp = new Date(u.inviteExpires); const _now = new Date(); %>
+                  Invite <%= _exp > _now ? 'expires' : 'expired' %> <%= _exp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                <% } else if (u.accountStatus === 'active' && u.lastLoginAt) { %>
+                  Last login <%= new Date(u.lastLoginAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                <% } else if (u.accountStatus === 'active') { %>
+                  Never logged in
+                <% } else { %>
+                  Joined <%= new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                <% } %>
               </td>
               <td>
                 <a href="/users/<%= u._id %>" class="proj-edit-btn" title="Manage user">

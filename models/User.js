@@ -43,7 +43,8 @@ const userSchema = new mongoose.Schema({
   inviteToken: String,
   inviteExpires: Date,
   failedLoginAttempts: { type: Number, default: 0 },
-  lockoutUntil: { type: Date, default: null }
+  lockoutUntil: { type: Date, default: null },
+  lastLoginAt: { type: Date, default: null }
 }, { timestamps: true });
 
 userSchema.index({ accountStatus: 1 });

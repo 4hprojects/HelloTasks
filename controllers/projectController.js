@@ -40,6 +40,8 @@ async function listProjects(req, res) {
     .sort({ createdAt: -1 })
     .lean();
 
+  const total = projects.length;
+
   if (search) {
     const q = search.toLowerCase();
     projects = projects.filter(p =>
@@ -51,6 +53,7 @@ async function listProjects(req, res) {
   res.render('projects/index', {
     title: 'Projects',
     projects,
+    total,
     filters: { search: search || '', status: status || '' }
   });
 }
@@ -208,6 +211,26 @@ async function deleteProject(req, res) {
   res.redirect('/projects');
 }
 
+async function archiveProject(req, res) {
+  const project = await Project.findById(req.params.id);
+  if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
+
+  const role = project.getMemberRole(req.user._id);
+  if (!isSystemAdmin(req.user) && !MANAGER_ROLES.includes(role)) {
+    return res.status(403).render('errors/403', { title: '403 Forbidden' });
+  }
+
+  project.status = 'archived';
+  await project.save();
+
+  await audit('project_archived', req.user, {
+    targetType: 'project', targetId: project._id, targetName: project.name
+  });
+
+  req.session.flash = { success: `Project "${project.name}" archived.` };
+  res.redirect('/projects');
+}
+
 async function addMember(req, res) {
   const project = await Project.findById(req.params.id);
   if (!project) return res.status(404).render('errors/404', { title: '404 Not Found' });
@@ -348,6 +371,6 @@ async function inviteMember(req, res) {
 
 module.exports = {
   listProjects, getNewProject, createProject,
-  getProject, getEditProject, updateProject, deleteProject,
+  getProject, getEditProject, updateProject, deleteProject, archiveProject,
   addMember, removeMember, inviteMember
 };

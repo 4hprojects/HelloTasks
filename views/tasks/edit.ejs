@@ -30,12 +30,12 @@
         </div>
 
         <div class="form-group">
-          <label for="description" class="form-label">Description</label>
+          <label for="description" class="form-label">Description <span class="form-label-optional">optional</span></label>
           <textarea id="description" name="description" class="form-textarea" rows="5" placeholder="Details, context, acceptance criteria…"><%= task.description %></textarea>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Checklist Items</label>
+          <label class="form-label">Checklist Items <span class="form-label-optional">optional</span></label>
           <div id="checklistContainer" class="checklist-builder">
             <% if (task.checklist && task.checklist.length > 0) { %>
               <% task.checklist.forEach(c => { %>
