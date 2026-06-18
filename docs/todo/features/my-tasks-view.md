@@ -2,7 +2,7 @@
 
 **Category:** Views & Visualization
 **Priority:** High
-**Status:** Idea
+**Status:** Done — 2026-06-18
 **Effort Estimate:** ~1 hr
 
 ## Description

@@ -727,7 +727,54 @@ async function listAllTasks(req, res) {
   });
 }
 
+async function getMyTasks(req, res) {
+  const { status, project: projectFilter, showCompleted, sort = 'dueDate' } = req.query;
+
+  const query = { assignee: req.user._id };
+  if (showCompleted === '1') {
+    query.status = { $ne: 'archived' };
+  } else {
+    query.status = { $nin: ['archived', 'completed'] };
+  }
+  if (status) query.status = status;
+  if (projectFilter) query.project = projectFilter;
+
+  const tasks = await Task.find(query)
+    .populate('project', 'name _id')
+    .sort(sort === 'priority' ? { priority: -1, dueDate: 1 } : { dueDate: 1, createdAt: -1 })
+    .lean();
+
+  const projects = await Project.find({ 'members.user': req.user._id, status: { $ne: 'archived' } })
+    .select('name _id').sort({ name: 1 }).lean();
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(now);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+
+  const overdue = [], thisWeek = [], later = [];
+  for (const task of tasks) {
+    if (!task.dueDate) { later.push(task); continue; }
+    const due = new Date(task.dueDate);
+    due.setHours(0, 0, 0, 0);
+    if (due < now) overdue.push(task);
+    else if (due <= weekEnd) thisWeek.push(task);
+    else later.push(task);
+  }
+
+  res.render('tasks/my-tasks', {
+    title: 'My Tasks',
+    overdue,
+    thisWeek,
+    later,
+    total: tasks.length,
+    projects,
+    filters: req.query,
+    statusLabels: STATUS_LABELS
+  });
+}
+
 module.exports = {
   getNewTask, createTask, getTask, getEditTask, updateTask,
-  updateStatus, duplicateTask, archiveTask, deleteTask, toggleChecklistItem, listTasks, bulkUpdateTasks, getKanban, listAllTasks
+  updateStatus, duplicateTask, archiveTask, deleteTask, toggleChecklistItem, listTasks, bulkUpdateTasks, getKanban, listAllTasks, getMyTasks
 };
