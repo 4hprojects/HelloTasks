@@ -556,8 +556,56 @@ async function listTasks(req, res) {
     tasks: visibleTasks,
     statusLabels: STATUS_LABELS,
     assignableUsers,
-    filters: { status: status || '', priority: priority || '', search: search || '', assigneeId: assigneeId || '', sort: sort || '' }
+    filters: { status: status || '', priority: priority || '', search: search || '', assigneeId: assigneeId || '', sort: sort || '' },
+    canBulk: MANAGER_ROLES.includes(req.projectRole) || isSystemAdmin(req.user)
   });
+}
+
+// POST /projects/:projectId/tasks/bulk
+async function bulkUpdateTasks(req, res) {
+  if (!MANAGER_ROLES.includes(req.projectRole) && !isSystemAdmin(req.user)) {
+    req.session.flash = { error: 'You do not have permission to bulk update tasks.' };
+    return res.redirect(`/projects/${req.project._id}/tasks`);
+  }
+
+  const { action } = req.body;
+  let taskIds = req.body.taskIds;
+  if (!taskIds) {
+    req.session.flash = { error: 'No tasks selected.' };
+    return res.redirect(`/projects/${req.project._id}/tasks`);
+  }
+  if (!Array.isArray(taskIds)) taskIds = [taskIds];
+
+  const VALID_STATUSES   = ['draft', 'assigned', 'in_progress', 'ready_for_review', 'returned_for_refinement', 'approved', 'blocked', 'completed'];
+  const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical'];
+
+  if (action === 'status') {
+    const newStatus = req.body.statusValue;
+    if (!VALID_STATUSES.includes(newStatus)) {
+      req.session.flash = { error: 'Invalid status.' };
+      return res.redirect(`/projects/${req.project._id}/tasks`);
+    }
+    await Task.updateMany(
+      { _id: { $in: taskIds }, project: req.project._id, status: { $ne: 'archived' } },
+      { $set: { status: newStatus }, $push: { statusHistory: { status: newStatus, changedBy: req.user._id, note: 'Bulk update' } } }
+    );
+    req.session.flash = { success: `Updated ${taskIds.length} task${taskIds.length !== 1 ? 's' : ''} to "${STATUS_LABELS[newStatus]}".` };
+  } else if (action === 'priority') {
+    const newPriority = req.body.priorityValue;
+    if (!VALID_PRIORITIES.includes(newPriority)) {
+      req.session.flash = { error: 'Invalid priority.' };
+      return res.redirect(`/projects/${req.project._id}/tasks`);
+    }
+    await Task.updateMany(
+      { _id: { $in: taskIds }, project: req.project._id, status: { $ne: 'archived' } },
+      { $set: { priority: newPriority } }
+    );
+    req.session.flash = { success: `Updated priority for ${taskIds.length} task${taskIds.length !== 1 ? 's' : ''}.` };
+  } else {
+    req.session.flash = { error: 'Unknown bulk action.' };
+  }
+
+  res.redirect(`/projects/${req.project._id}/tasks`);
 }
 
 // GET /projects/:projectId/kanban
@@ -659,5 +707,5 @@ async function listAllTasks(req, res) {
 
 module.exports = {
   getNewTask, createTask, getTask, getEditTask, updateTask,
-  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks, getKanban, listAllTasks
+  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks, bulkUpdateTasks, getKanban, listAllTasks
 };

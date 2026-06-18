@@ -54,6 +54,133 @@
   </div>
 <% } else { %>
   <p class="results-count"><%= tasks.length %> task<%= tasks.length !== 1 ? 's' : '' %></p>
+
+  <% if (canBulk) { %>
+  <form id="bulk-form" method="POST" action="/projects/<%= project._id %>/tasks/bulk">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div id="bulk-bar" class="bulk-bar" style="display:none;">
+      <span id="bulk-count" class="bulk-count">0 tasks selected</span>
+      <div class="bulk-actions">
+        <select name="statusValue" class="form-select form-select--sm bulk-select">
+          <option value="">— Status —</option>
+          <% Object.entries(statusLabels).filter(([k]) => k !== 'archived').forEach(([k, v]) => { %>
+            <option value="<%= k %>"><%= v %></option>
+          <% }) %>
+        </select>
+        <button type="submit" name="action" value="status" class="btn btn--sm btn--outline bulk-btn">Set Status</button>
+        <select name="priorityValue" class="form-select form-select--sm bulk-select">
+          <option value="">— Priority —</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <button type="submit" name="action" value="priority" class="btn btn--sm btn--outline bulk-btn">Set Priority</button>
+        <button type="button" class="btn btn--ghost btn--sm" id="bulk-clear">Clear</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body no-padding">
+        <table class="data-table data-table--tasks">
+          <thead>
+            <tr>
+              <th style="width:2.5rem;padding-left:1rem;"><input type="checkbox" id="bulk-select-all" title="Select all" /></th>
+              <th>Task</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Assignee</th>
+              <th>Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% tasks.forEach(task => { %>
+              <% const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !['completed','archived'].includes(task.status); %>
+              <% if (!task.visible) { %>
+                <tr>
+                  <td></td>
+                  <td colspan="5" class="confidential-row">
+                    <span class="lock-icon">
+                      <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                    </span>
+                    Confidential task
+                  </td>
+                </tr>
+              <% } else { %>
+                <tr class="task-row<%= isOverdue ? ' row--overdue' : '' %>">
+                  <td style="padding-left:1rem;"><input type="checkbox" name="taskIds" value="<%= task._id %>" class="bulk-checkbox" /></td>
+                  <td class="task-cell">
+                    <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="task-link"><%= task.title %></a>
+                    <% if (task.isConfidential) { %><span class="badge badge--warning badge--xs">confidential</span><% } %>
+                  </td>
+                  <td>
+                    <span class="badge badge--<%= task.status === 'completed' ? 'success' : task.status === 'blocked' ? 'danger' : task.status === 'in_progress' ? 'primary' : task.status === 'ready_for_review' ? 'info' : 'neutral' %>">
+                      <%= statusLabels[task.status] %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="priority-cell">
+                      <span class="priority-dot priority-dot--<%= task.priority || 'medium' %>"></span>
+                      <span class="priority-text"><%= (task.priority || 'medium').charAt(0).toUpperCase() + (task.priority || 'medium').slice(1) %></span>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (task.assignee) { %>
+                      <span class="assignee-cell">
+                        <span class="user-avatar user-avatar--sm"><%= task.assignee.fullName.charAt(0).toUpperCase() %></span>
+                        <span class="assignee-name"><%= task.assignee.fullName %></span>
+                      </span>
+                    <% } else { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                  <td class="<%= isOverdue ? 'text-danger' : 'text-secondary' %> text-sm">
+                    <%= task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' %>
+                  </td>
+                </tr>
+              <% } %>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </form>
+
+  <script>
+  (function () {
+    const selectAll = document.getElementById('bulk-select-all');
+    const bulkBar   = document.getElementById('bulk-bar');
+    const bulkCount = document.getElementById('bulk-count');
+    const checkboxes = () => document.querySelectorAll('.bulk-checkbox');
+
+    function update() {
+      const all = checkboxes();
+      const checked = [...all].filter(c => c.checked);
+      if (checked.length > 0) {
+        bulkBar.style.display = '';
+        bulkCount.textContent = `${checked.length} task${checked.length !== 1 ? 's' : ''} selected`;
+      } else {
+        bulkBar.style.display = 'none';
+      }
+      selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+      selectAll.checked = all.length > 0 && checked.length === all.length;
+    }
+
+    selectAll.addEventListener('change', () => {
+      checkboxes().forEach(cb => { cb.checked = selectAll.checked; });
+      update();
+    });
+    document.querySelectorAll('.bulk-checkbox').forEach(cb => cb.addEventListener('change', update));
+    document.getElementById('bulk-clear').addEventListener('click', () => {
+      checkboxes().forEach(cb => { cb.checked = false; });
+      selectAll.checked = false;
+      update();
+    });
+  })();
+  </script>
+
+  <% } else { %>
   <div class="panel">
     <div class="panel-body no-padding">
       <table class="data-table data-table--tasks">
@@ -81,9 +208,7 @@
             <% } else { %>
               <tr class="task-row<%= isOverdue ? ' row--overdue' : '' %>">
                 <td class="task-cell">
-                  <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="task-link">
-                    <%= task.title %>
-                  </a>
+                  <a href="/projects/<%= project._id %>/tasks/<%= task._id %>" class="task-link"><%= task.title %></a>
                   <% if (task.isConfidential) { %><span class="badge badge--warning badge--xs">confidential</span><% } %>
                 </td>
                 <td>
@@ -117,4 +242,5 @@
       </table>
     </div>
   </div>
+  <% } %>
 <% } %>

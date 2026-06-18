@@ -4,7 +4,7 @@ const { isAuthenticated } = require('../middleware/authMiddleware');
 const { requireProjectMember, loadTask } = require('../middleware/projectMiddleware');
 const {
   getNewTask, createTask, getTask, getEditTask, updateTask,
-  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks
+  updateStatus, archiveTask, deleteTask, toggleChecklistItem, listTasks, bulkUpdateTasks
 } = require('../controllers/taskController');
 const { addComment, deleteComment } = require('../controllers/commentController');
 const { handleUpload, deleteFile } = require('../controllers/fileController');
@@ -13,6 +13,7 @@ const { upload } = require('../services/uploadService');
 router.use(isAuthenticated, requireProjectMember);
 
 router.get('/', listTasks);
+router.post('/bulk', bulkUpdateTasks);
 router.get('/new', getNewTask);
 router.post('/', createTask);
 router.get('/:taskId', loadTask, getTask);
