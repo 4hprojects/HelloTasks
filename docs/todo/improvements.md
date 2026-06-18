@@ -76,7 +76,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~Medium~~ | ~~Add results count to project list filter bar ("Showing X of Y projects")~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Add archive option for projects (soft delete, not permanent delete)~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Add client-side email validation on the "Invite by Email" form before submit~~ ✅ Done 2026-06-18 |
-| Low | Add keyboard navigation to the member add tab toggle |
+| ~~Low~~ | ~~Add keyboard navigation to the member add tab toggle~~ ✅ Done 2026-06-18 |
 
 ### Users & Admin
 
@@ -92,7 +92,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | Priority | Item |
 |---|---|
 | ~~Medium~~ | ~~Auto-dismiss flash messages after a few seconds (with manual close still available)~~ ✅ Done 2026-06-18 |
-| Low | Add ARIA live region to notification badge so screen readers announce new notifications |
+| ~~Low~~ | ~~Add ARIA live region to notification badge so screen readers announce new notifications~~ ✅ Done 2026-06-18 |
 
 ### General / Cross-Cutting
 
@@ -101,7 +101,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~High~~ | ~~Implement loading spinner on button click for async actions~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Replace all browser `confirm()` destructive action dialogs with a consistent styled modal~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Add consistent empty-state CTAs across all list views (some have them, some don't)~~ ✅ Done 2026-06-18 |
-| Low | Add sticky column headers to long tables |
+| ~~Low~~ | ~~Add sticky column headers to long tables~~ ✅ Done 2026-06-18 |
 
 ---
 
