@@ -1,0 +1,18 @@
+<% if (pagination.totalPages > 1) { %>
+<% const _base = pagination.queryBase ? pagination.queryBase + '&' : ''; %>
+<nav class="pagination" aria-label="Page navigation">
+  <% if (pagination.page > 1) { %>
+    <a href="?<%= _base %>page=<%= pagination.page - 1 %>" class="pagination-btn">← Prev</a>
+  <% } else { %>
+    <span class="pagination-btn pagination-btn--disabled">← Prev</span>
+  <% } %>
+
+  <span class="pagination-info">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+
+  <% if (pagination.page < pagination.totalPages) { %>
+    <a href="?<%= _base %>page=<%= pagination.page + 1 %>" class="pagination-btn">Next →</a>
+  <% } else { %>
+    <span class="pagination-btn pagination-btn--disabled">Next →</span>
+  <% } %>
+</nav>
+<% } %>

@@ -41,7 +41,9 @@
   <div>
     <h1 class="page-title">Notifications</h1>
     <% if (unreadCount > 0) { %>
-      <p class="page-desc"><%= unreadCount %> unread</p>
+      <p class="page-desc"><%= unreadCount %> unread · <%= pagination.total %> total</p>
+    <% } else if (pagination.total > 0) { %>
+      <p class="page-desc"><%= pagination.total %> total</p>
     <% } %>
   </div>
   <% if (unreadCount > 0) { %>
@@ -99,4 +101,5 @@
 
     <% }); %>
   </div>
+  <%- include('../partials/pagination', { pagination }) %>
 <% } %>

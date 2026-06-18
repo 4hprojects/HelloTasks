@@ -12,15 +12,24 @@ const TYPE_LABELS = {
 };
 
 async function listNotifications(req, res) {
-  const notifications = await Notification.find({ recipient: req.user._id })
+  const PAGE_SIZE = 20;
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const filter = { recipient: req.user._id };
+  const total = await Notification.countDocuments(filter);
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  const safePage = Math.min(page, totalPages);
+
+  const notifications = await Notification.find(filter)
     .sort({ createdAt: -1 })
-    .limit(100)
+    .skip((safePage - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
     .lean();
 
   res.render('notifications/index', {
     title: 'Notifications',
     notifications,
-    typeLabels: TYPE_LABELS
+    typeLabels: TYPE_LABELS,
+    pagination: { page: safePage, totalPages, total, queryBase: '' }
   });
 }
 

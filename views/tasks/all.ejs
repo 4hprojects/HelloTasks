@@ -50,7 +50,7 @@
     </div>
   </div>
 <% } else { %>
-  <p class="results-count"><%= tasks.length %> task<%= tasks.length !== 1 ? 's' : '' %></p>
+  <p class="results-count"><%= pagination.total %> task<%= pagination.total !== 1 ? 's' : '' %></p>
   <div class="panel">
     <div class="panel-body no-padding">
       <table class="data-table">
@@ -101,4 +101,5 @@
       </table>
     </div>
   </div>
+  <%- include('../partials/pagination', { pagination }) %>
 <% } %>

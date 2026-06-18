@@ -549,19 +549,35 @@ async function listAllTasks(req, res) {
   };
   const sortOrder = sortMap[sort] || { updatedAt: -1 };
 
+  const PAGE_SIZE = 25;
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const total = await Task.countDocuments(filter);
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  const safePage = Math.min(page, totalPages);
+
   const tasks = await Task.find(filter)
     .populate('project', 'name')
     .populate('assignee', 'fullName')
     .sort(sortOrder)
-    .limit(200)
+    .skip((safePage - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
     .lean();
+
+  const qp = new URLSearchParams();
+  if (search)    qp.set('search', search);
+  if (status)    qp.set('status', status);
+  if (priority)  qp.set('priority', priority);
+  if (projectId) qp.set('projectId', projectId);
+  if (assigneeId) qp.set('assigneeId', assigneeId);
+  if (sort)      qp.set('sort', sort);
 
   res.render('tasks/all', {
     title: 'All Tasks',
     tasks,
     accessibleProjects,
     statusLabels: STATUS_LABELS,
-    filters: { search: search || '', status: status || '', priority: priority || '', projectId: projectId || '', assigneeId: assigneeId || '', sort: sort || '' }
+    filters: { search: search || '', status: status || '', priority: priority || '', projectId: projectId || '', assigneeId: assigneeId || '', sort: sort || '' },
+    pagination: { page: safePage, totalPages, total, queryBase: qp.toString() }
   });
 }
 
