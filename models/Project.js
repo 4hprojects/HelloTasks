@@ -25,6 +25,9 @@ const projectSchema = new mongoose.Schema({
   members: [memberSchema]
 }, { timestamps: true });
 
+projectSchema.index({ status: 1 });
+projectSchema.index({ 'members.user': 1 });
+
 projectSchema.methods.getMemberRole = function (userId) {
   const m = this.members.find(m => m.user.toString() === userId.toString());
   return m ? m.role : null;

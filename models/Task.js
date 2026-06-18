@@ -39,6 +39,11 @@ const taskSchema = new mongoose.Schema({
   archivedAt: { type: Date, default: null }
 }, { timestamps: true });
 
+taskSchema.index({ project: 1, status: 1 });
+taskSchema.index({ assignee: 1, status: 1 });
+taskSchema.index({ dueDate: 1, status: 1 });
+taskSchema.index({ createdAt: -1 });
+
 taskSchema.methods.isVisibleTo = function (user) {
   if (!this.isConfidential) return true;
   if (user.globalRole === 'super_admin') return true;

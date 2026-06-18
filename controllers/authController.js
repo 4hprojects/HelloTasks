@@ -58,15 +58,38 @@ async function postLogin(req, res) {
       req.session.flash = { error: 'Security check failed. Please try again.' };
       return res.redirect('/login');
     }
+
     const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) {
+
+    if (user && user.lockoutUntil && user.lockoutUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockoutUntil - Date.now()) / 60000);
+      req.session.flash = { error: `Account locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.` };
+      return res.redirect('/login');
+    }
+
+    const passwordOk = user && await user.comparePassword(password);
+
+    if (!passwordOk) {
+      if (user) {
+        user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+        if (user.failedLoginAttempts >= 5) {
+          user.lockoutUntil = new Date(Date.now() + 10 * 60 * 1000);
+        }
+        await user.save();
+      }
       req.session.flash = { error: 'Invalid email or password.' };
       return res.redirect('/login');
     }
+
     if (user.accountStatus !== 'active') {
       req.session.flash = { error: 'Your account is pending activation. Please contact an admin.' };
       return res.redirect('/login');
     }
+
+    user.failedLoginAttempts = 0;
+    user.lockoutUntil = null;
+    await user.save();
+
     req.session.userId = user._id.toString();
     res.redirect('/dashboard');
   } catch (err) {

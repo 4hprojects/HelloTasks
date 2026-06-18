@@ -41,8 +41,13 @@ const userSchema = new mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: Date,
   inviteToken: String,
-  inviteExpires: Date
+  inviteExpires: Date,
+  failedLoginAttempts: { type: Number, default: 0 },
+  lockoutUntil: { type: Date, default: null }
 }, { timestamps: true });
+
+userSchema.index({ accountStatus: 1 });
+userSchema.index({ globalRole: 1 });
 
 userSchema.methods.comparePassword = function (plain) {
   return bcrypt.compare(plain, this.passwordHash);

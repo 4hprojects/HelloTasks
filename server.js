@@ -1,5 +1,14 @@
 require('dotenv').config();
+
+const REQUIRED_ENV = ['MONGO_URI', 'SESSION_SECRET'];
+const missing = REQUIRED_ENV.filter(k => !process.env[k]);
+if (missing.length) {
+  console.error(`Missing required environment variables: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
 const express = require('express');
+const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const expressLayouts = require('express-ejs-layouts');
@@ -15,6 +24,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
+app.use(morgan(process.env.APP_ENV === 'production' ? 'combined' : 'dev'));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

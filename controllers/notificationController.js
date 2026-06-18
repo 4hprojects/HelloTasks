@@ -29,7 +29,7 @@ async function markRead(req, res) {
     { _id: req.params.id, recipient: req.user._id },
     { isRead: true }
   );
-  res.redirect('back');
+  res.redirect('/notifications');
 }
 
 async function markAllRead(req, res) {

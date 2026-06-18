@@ -15,4 +15,7 @@ const fileRecordSchema = new mongoose.Schema({
   isConfidential: { type: Boolean, default: false }
 }, { timestamps: true });
 
+fileRecordSchema.index({ task: 1 });
+fileRecordSchema.index({ project: 1 });
+
 module.exports = mongoose.model('FileRecord', fileRecordSchema);
