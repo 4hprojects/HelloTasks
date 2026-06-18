@@ -1,0 +1,134 @@
+# HelloTasks — Improvement Backlog
+
+Full codebase audit completed 2026-06-18. Items are grouped by area and ranked within each group.
+
+---
+
+## Security
+
+| Priority | Item |
+|---|---|
+| Critical | Add `helmet.js` middleware in server.js — sets X-Frame-Options, X-Content-Type-Options, HSTS, and other security headers |
+| Critical | Add rate limiting on `/login`, `/register`, `/forgot-password` using `express-rate-limit` — brute-force currently unprotected |
+| Critical | Add CSRF protection on all state-changing forms using `csurf` or double-submit cookie pattern |
+| High | Sanitize comment content before saving — current code only trims, no XSS protection |
+| High | Validate External URL field with URL parsing (not just startsWith check) — `javascript:` and `data:` URIs currently not rejected |
+| High | Add `sameSite: 'lax'` to session cookie config in server.js — currently missing |
+| High | Add account lockout after N failed login attempts — no failed-attempt tracking exists |
+| Medium | Fix `res.redirect('back')` in notificationController.js — deprecated and allows open redirect; replace with `/notifications` |
+| Medium | Invalidate old password reset token when a new one is requested |
+| Medium | Validate file type by extension independently of MIME type — MIME can be spoofed |
+| Medium | Add HTTPS redirect middleware in production (check `APP_ENV=production`) |
+| Medium | Validate confidential file access in fileController — any authenticated user can currently access file URLs directly |
+
+---
+
+## Performance & Database
+
+| Priority | Item |
+|---|---|
+| High | Add indexes to Task model: `project`, `assignee`, `status`, `dueDate`, `createdAt` |
+| High | Add indexes to Project model: `slug`, `status`, `members.user` |
+| High | Add indexes to User model: `accountStatus`, `globalRole` |
+| High | Add indexes to Comment model: compound `{ task: 1, createdAt: -1 }` |
+| High | Add indexes to FileRecord model: `task`, `project` |
+| High | Add pagination to global task list (`/tasks`) — currently hard-limited to 200 with no paging UI |
+| High | Add pagination to notifications list — hard-limited to 100 with no paging UI |
+| Medium | Add pagination to user list — currently loads all users |
+| Medium | Add pagination to comments on task show page — currently loads all comments |
+| Medium | Refactor dashboard to use a single aggregation pipeline instead of 7 separate queries |
+| Medium | Extract repeated "assignable users" query in taskController into a shared helper — called 4+ times identically |
+| Low | Refactor weekly report to use MongoDB aggregation instead of client-side JS filtering |
+
+---
+
+## UI/UX
+
+### Auth Pages
+
+| Priority | Item |
+|---|---|
+| High | Add `autofocus` to the first field on login, register, forgot-password |
+| Medium | Show a success confirmation page/message after password reset completes (currently just redirects) |
+| Medium | Add client-side email format validation on register and forgot-password before submit |
+| Low | Add "Remember me" checkbox on login |
+
+### Tasks
+
+| Priority | Item |
+|---|---|
+| High | Make task list table responsive on mobile — currently overflows on small screens |
+| High | Make kanban board horizontally scrollable on mobile — currently unusable |
+| High | Add file upload progress indicator — no feedback during upload |
+| Medium | Allow checking off checklist items directly from task show page (currently read-only, must go to edit) |
+| Medium | Show a hint near the comment textarea explaining `@Name` mention support |
+| Medium | Replace browser `confirm()` dialogs with styled custom modal for delete/archive actions |
+| Medium | Add visual grouping (divider or label) between required and optional fields on task form |
+| Low | Add drag-and-drop to kanban board for status changes |
+| Low | Add bulk actions on task list (select multiple, change status/priority) |
+| Low | Add task duplication feature |
+
+### Projects
+
+| Priority | Item |
+|---|---|
+| High | Make project member table responsive on mobile |
+| Medium | Add results count to project list filter bar ("Showing X of Y projects") |
+| Medium | Add archive option for projects (soft delete, not permanent delete) |
+| Medium | Add client-side email validation on the "Invite by Email" form before submit |
+| Low | Add keyboard navigation to the member add tab toggle |
+
+### Users & Admin
+
+| Priority | Item |
+|---|---|
+| Medium | Show invite expiry date in user list for pending accounts |
+| Medium | Show "Last active" timestamp on user list for account management |
+| Medium | Add a dry-run preview step before sending weekly report email |
+| Low | Add copy-to-clipboard for invite link in the invite flow |
+
+### Notifications
+
+| Priority | Item |
+|---|---|
+| Medium | Auto-dismiss flash messages after a few seconds (with manual close still available) |
+| Low | Add ARIA live region to notification badge so screen readers announce new notifications |
+
+### General / Cross-Cutting
+
+| Priority | Item |
+|---|---|
+| High | Implement loading spinner on button click for async actions (file upload, status update, comment post) — `data-loading-text` attribute exists but no JS activates it |
+| Medium | Replace all browser `confirm()` destructive action dialogs with a consistent styled modal |
+| Medium | Add consistent empty-state CTAs across all list views (some have them, some don't) |
+| Low | Add sticky column headers to long tables |
+
+---
+
+## Backend Quality
+
+| Priority | Item |
+|---|---|
+| High | Validate required environment variables at startup (MONGO_URI, SESSION_SECRET, etc.) — currently fails silently |
+| High | Add Morgan HTTP request logging middleware to server.js |
+| Medium | Centralise email HTML into reusable template functions or a templates/ folder — currently inlined in multiple controllers |
+| Medium | Add audit logging for critical actions: delete task, delete project, remove member, change user role |
+| Medium | Standardise role checking to always use utils/roles.js — some controllers still hardcode role name arrays |
+| Medium | Add cascade delete hooks: deleting a project should clean up its tasks, comments, files, and notifications |
+| Medium | Validate that task assignee is a member of the project before saving |
+| Low | Replace magic numbers with named constants: 72h invite expiry, 100 notification limit, 8:00 AM cron time |
+| Low | Add request correlation IDs to log entries for tracing errors in production |
+
+---
+
+## Out of Scope (Post-MVP)
+
+These were identified but are explicitly post-MVP and should not be prioritised now:
+
+- Async email queue (Bull/RabbitMQ) — overkill until volume justifies it
+- API documentation / JSDoc
+- Real-time updates (WebSockets)
+- Advanced analytics
+- CSV/PDF export
+- AI features
+- Mobile app
