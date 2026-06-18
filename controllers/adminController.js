@@ -4,6 +4,42 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const { sendEmail } = require('../services/emailService');
 
+async function buildWeeklyReportData() {
+  const settings = await AppSetting.findById('app') || { appName: 'HelloTasks', weeklyReportNote: '' };
+
+  const [projects, allTasks, recipients] = await Promise.all([
+    Project.find({}).sort({ name: 1 }).lean(),
+    Task.find({ status: { $ne: 'archived' } }).lean(),
+    User.find({ globalRole: { $in: ['super_admin', 'project_lead'] }, accountStatus: 'active' }).select('email fullName').lean()
+  ]);
+
+  const now = new Date();
+  const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
+  const statusCounts = {};
+  allTasks.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
+
+  const completedThisWeek = allTasks.filter(t =>
+    t.status === 'completed' && new Date(t.updatedAt) >= sevenDaysAgo
+  ).length;
+
+  const blockedCount = statusCounts['blocked'] || 0;
+  const inReviewCount = statusCounts['ready_for_review'] || 0;
+
+  const projectRows = projects.map(p => {
+    const ptasks = allTasks.filter(t => t.project.toString() === p._id.toString());
+    const done = ptasks.filter(t => t.status === 'completed').length;
+    const blocked = ptasks.filter(t => t.status === 'blocked').length;
+    const review = ptasks.filter(t => t.status === 'ready_for_review').length;
+    const inProgress = ptasks.filter(t => t.status === 'in_progress').length;
+    return { name: p.name, total: ptasks.length, done, blocked, review, inProgress };
+  }).filter(r => r.total > 0);
+
+  const reportDate = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  return { settings, allTasks, recipients, completedThisWeek, blockedCount, inReviewCount, projectRows, reportDate };
+}
+
 async function getSettings(req, res) {
   let settings = await AppSetting.findById('app');
   if (!settings) settings = await AppSetting.create({ _id: 'app' });
@@ -32,49 +68,28 @@ async function postSettings(req, res) {
   res.redirect('/admin/settings');
 }
 
+async function getWeeklyReportPreview(req, res) {
+  try {
+    const data = await buildWeeklyReportData();
+    res.render('admin/weekly-report-preview', {
+      title: 'Weekly Report Preview',
+      ...data
+    });
+  } catch (err) {
+    console.error(err);
+    req.session.flash = { error: 'Failed to load report preview.' };
+    res.redirect('/admin/settings');
+  }
+}
+
 async function sendWeeklyReport(req, res) {
   try {
-    const settings = await AppSetting.findById('app') || { appName: 'HelloTasks', weeklyReportNote: '' };
-
-    const [projects, allTasks, recipients] = await Promise.all([
-      Project.find({}).sort({ name: 1 }).lean(),
-      Task.find({ status: { $ne: 'archived' } }).lean(),
-      User.find({ globalRole: { $in: ['super_admin', 'project_lead'] }, accountStatus: 'active' }).select('email fullName').lean()
-    ]);
+    const { settings, allTasks, recipients, completedThisWeek, blockedCount, inReviewCount, projectRows, reportDate } = await buildWeeklyReportData();
 
     if (recipients.length === 0) {
       req.session.flash = { error: 'No active Super Admins or Project Leads found to send to.' };
       return res.redirect('/admin/settings');
     }
-
-    const projectIds = projects.map(p => p._id.toString());
-    const now = new Date();
-    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-
-    // Overall stats
-    const statusCounts = {};
-    allTasks.forEach(t => {
-      statusCounts[t.status] = (statusCounts[t.status] || 0) + 1;
-    });
-
-    const completedThisWeek = allTasks.filter(t =>
-      t.status === 'completed' && new Date(t.updatedAt) >= sevenDaysAgo
-    ).length;
-
-    const blockedCount = statusCounts['blocked'] || 0;
-    const inReviewCount = statusCounts['ready_for_review'] || 0;
-
-    // Per-project breakdown
-    const projectRows = projects.map(p => {
-      const ptasks = allTasks.filter(t => t.project.toString() === p._id.toString());
-      const done = ptasks.filter(t => t.status === 'completed').length;
-      const blocked = ptasks.filter(t => t.status === 'blocked').length;
-      const review = ptasks.filter(t => t.status === 'ready_for_review').length;
-      const inProgress = ptasks.filter(t => t.status === 'in_progress').length;
-      return { name: p.name, total: ptasks.length, done, blocked, review, inProgress };
-    }).filter(r => r.total > 0);
-
-    const reportDate = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     const projectRowsHtml = projectRows.map(r => `
       <tr>
@@ -158,4 +173,4 @@ async function sendWeeklyReport(req, res) {
   }
 }
 
-module.exports = { getSettings, postSettings, sendWeeklyReport };
+module.exports = { getSettings, postSettings, getWeeklyReportPreview, sendWeeklyReport };

@@ -58,10 +58,7 @@
         <dt>Delivery</dt>
         <dd>HTML email via Resend</dd>
       </dl>
-      <form method="POST" action="/admin/weekly-report" data-confirm="Send the weekly report now to all System Admins and Project Leads?">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <button type="submit" class="btn btn--primary btn--sm">Send Weekly Report Now</button>
-      </form>
+      <a href="/admin/weekly-report/preview" class="btn btn--primary btn--sm">Preview &amp; Send Report</a>
     </div>
   </div>
 

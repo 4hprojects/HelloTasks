@@ -84,7 +84,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 |---|---|
 | ~~Medium~~ | ~~Show invite expiry date in user list for pending accounts~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Show "Last active" timestamp on user list for account management~~ ✅ Done 2026-06-18 |
-| Medium | Add a dry-run preview step before sending weekly report email |
+| ~~Medium~~ | ~~Add a dry-run preview step before sending weekly report email~~ ✅ Done 2026-06-18 |
 | Low | Add copy-to-clipboard for invite link in the invite flow |
 
 ### Notifications

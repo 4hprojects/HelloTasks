@@ -1,0 +1,107 @@
+<div class="page-header">
+  <div>
+    <a href="/admin/settings" class="back-link">← Settings</a>
+    <h1 class="page-title">Weekly Report Preview</h1>
+    <p class="page-desc">Review the report before sending. Generated <%= reportDate %>.</p>
+  </div>
+</div>
+
+<div class="admin-layout">
+
+  <!-- Overall Summary -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Overall Summary</h2>
+    </div>
+    <div class="panel-body">
+      <% if (settings.weeklyReportNote) { %>
+        <div class="alert alert--info" style="margin-bottom:1.25rem;"><span><%= settings.weeklyReportNote %></span></div>
+      <% } %>
+      <dl class="detail-list">
+        <dt>Total Projects (with tasks)</dt>
+        <dd><%= projectRows.length %></dd>
+        <dt>Total Active Tasks</dt>
+        <dd><%= allTasks.length %></dd>
+        <dt>Completed This Week</dt>
+        <dd style="color:var(--color-success,#16a34a);font-weight:600;"><%= completedThisWeek %></dd>
+        <dt>Ready for Review</dt>
+        <dd style="color:var(--color-primary);font-weight:600;"><%= inReviewCount %></dd>
+        <dt>Blocked</dt>
+        <dd style="color:var(--color-error);font-weight:600;"><%= blockedCount %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Project Breakdown -->
+  <% if (projectRows.length > 0) { %>
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Project Breakdown</h2>
+    </div>
+    <div class="panel-body no-padding">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th class="text-center">Total</th>
+            <th class="text-center">In Progress</th>
+            <th class="text-center">Review</th>
+            <th class="text-center">Done</th>
+            <th class="text-center">Blocked</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% projectRows.forEach(r => { %>
+          <tr>
+            <td><%= r.name %></td>
+            <td class="text-center text-secondary"><%= r.total %></td>
+            <td class="text-center text-secondary"><%= r.inProgress %></td>
+            <td class="text-center" style="color:var(--color-primary);font-weight:600;"><%= r.review %></td>
+            <td class="text-center" style="color:var(--color-success,#16a34a);font-weight:600;"><%= r.done %></td>
+            <td class="text-center" style="color:var(--color-error);font-weight:600;"><%= r.blocked %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Recipients & Send -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Recipients</h2>
+      <span class="badge badge--neutral"><%= recipients.length %> recipient<%= recipients.length === 1 ? '' : 's' %></span>
+    </div>
+    <div class="panel-body">
+      <% if (recipients.length === 0) { %>
+        <p class="empty-state">No active System Admins or Project Leads found. Add users with those roles before sending.</p>
+      <% } else { %>
+        <ul style="list-style:none;padding:0;margin:0 0 1.5rem;display:flex;flex-direction:column;gap:0.625rem;">
+          <% recipients.forEach(r => { %>
+          <li style="display:flex;align-items:center;gap:0.75rem;">
+            <div class="user-avatar" style="width:32px;height:32px;font-size:0.8125rem;flex-shrink:0;"><%= r.fullName.charAt(0).toUpperCase() %></div>
+            <div>
+              <div class="text-sm" style="font-weight:500;"><%= r.fullName %></div>
+              <div class="text-sm text-secondary"><%= r.email %></div>
+            </div>
+          </li>
+          <% }) %>
+        </ul>
+      <% } %>
+
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        <% if (recipients.length > 0) { %>
+          <form method="POST" action="/admin/weekly-report" data-confirm="Send this report to <%= recipients.length %> recipient<%= recipients.length === 1 ? '' : 's' %>?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn--primary" data-loading-text="Sending...">
+              Confirm &amp; Send to <%= recipients.length %> Recipient<%= recipients.length === 1 ? '' : 's' %>
+            </button>
+          </form>
+        <% } %>
+        <a href="/admin/settings" class="btn btn--ghost">Cancel</a>
+      </div>
+    </div>
+  </div>
+
+</div>
