@@ -1,43 +1,58 @@
 const AppSetting = require('../models/AppSetting');
-const Project = require('../models/Project');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const { sendEmail } = require('../services/emailService');
 
 async function buildWeeklyReportData() {
-  const settings = await AppSetting.findById('app') || { appName: 'HelloTasks', weeklyReportNote: '' };
-
-  const [projects, allTasks, recipients] = await Promise.all([
-    Project.find({}).sort({ name: 1 }).lean(),
-    Task.find({ status: { $ne: 'archived' } }).lean(),
-    User.find({ globalRole: { $in: ['super_admin', 'project_lead'] }, accountStatus: 'active' }).select('email fullName').lean()
-  ]);
-
   const now = new Date();
   const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
-  const statusCounts = {};
-  allTasks.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
+  const [aggResult, recipients, settings] = await Promise.all([
+    Task.aggregate([
+      { $match: { status: { $ne: 'archived' } } },
+      { $facet: {
+        overall: [
+          { $group: {
+            _id: null,
+            total: { $sum: 1 },
+            blocked:    { $sum: { $cond: [{ $eq: ['$status', 'blocked'] },            1, 0] } },
+            inReview:   { $sum: { $cond: [{ $eq: ['$status', 'ready_for_review'] },   1, 0] } },
+            completedThisWeek: { $sum: { $cond: [
+              { $and: [{ $eq: ['$status', 'completed'] }, { $gte: ['$updatedAt', sevenDaysAgo] }] }, 1, 0
+            ]}}
+          }}
+        ],
+        byProject: [
+          { $group: {
+            _id: '$project',
+            total:      { $sum: 1 },
+            done:       { $sum: { $cond: [{ $eq: ['$status', 'completed'] },          1, 0] } },
+            blocked:    { $sum: { $cond: [{ $eq: ['$status', 'blocked'] },            1, 0] } },
+            review:     { $sum: { $cond: [{ $eq: ['$status', 'ready_for_review'] },   1, 0] } },
+            inProgress: { $sum: { $cond: [{ $eq: ['$status', 'in_progress'] },        1, 0] } }
+          }},
+          { $lookup: { from: 'projects', localField: '_id', foreignField: '_id', as: 'proj' } },
+          { $unwind: '$proj' },
+          { $project: { name: '$proj.name', total: 1, done: 1, blocked: 1, review: 1, inProgress: 1 } },
+          { $sort: { name: 1 } }
+        ]
+      }}
+    ]),
+    User.find({ globalRole: { $in: ['super_admin', 'project_lead'] }, accountStatus: 'active' }).select('email fullName').lean(),
+    AppSetting.findById('app')
+  ]);
 
-  const completedThisWeek = allTasks.filter(t =>
-    t.status === 'completed' && new Date(t.updatedAt) >= sevenDaysAgo
-  ).length;
-
-  const blockedCount = statusCounts['blocked'] || 0;
-  const inReviewCount = statusCounts['ready_for_review'] || 0;
-
-  const projectRows = projects.map(p => {
-    const ptasks = allTasks.filter(t => t.project.toString() === p._id.toString());
-    const done = ptasks.filter(t => t.status === 'completed').length;
-    const blocked = ptasks.filter(t => t.status === 'blocked').length;
-    const review = ptasks.filter(t => t.status === 'ready_for_review').length;
-    const inProgress = ptasks.filter(t => t.status === 'in_progress').length;
-    return { name: p.name, total: ptasks.length, done, blocked, review, inProgress };
-  }).filter(r => r.total > 0);
+  const s = settings || { appName: 'HelloTasks', weeklyReportNote: '' };
+  const overall = aggResult[0]?.overall[0] || {};
+  const totalTasks        = overall.total               || 0;
+  const completedThisWeek = overall.completedThisWeek   || 0;
+  const blockedCount      = overall.blocked             || 0;
+  const inReviewCount     = overall.inReview            || 0;
+  const projectRows       = aggResult[0]?.byProject     || [];
 
   const reportDate = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-  return { settings, allTasks, recipients, completedThisWeek, blockedCount, inReviewCount, projectRows, reportDate };
+  return { settings: s, totalTasks, recipients, completedThisWeek, blockedCount, inReviewCount, projectRows, reportDate };
 }
 
 async function getSettings(req, res) {
@@ -84,7 +99,7 @@ async function getWeeklyReportPreview(req, res) {
 
 async function sendWeeklyReport(req, res) {
   try {
-    const { settings, allTasks, recipients, completedThisWeek, blockedCount, inReviewCount, projectRows, reportDate } = await buildWeeklyReportData();
+    const { settings, totalTasks, recipients, completedThisWeek, blockedCount, inReviewCount, projectRows, reportDate } = await buildWeeklyReportData();
 
     if (recipients.length === 0) {
       req.session.flash = { error: 'No active Super Admins or Project Leads found to send to.' };
@@ -122,7 +137,7 @@ async function sendWeeklyReport(req, res) {
             </tr>
             <tr>
               <td style="padding:10px 14px;font-weight:600;">Total Active Tasks</td>
-              <td style="padding:10px 14px;text-align:right;font-weight:700;">${allTasks.length}</td>
+              <td style="padding:10px 14px;text-align:right;font-weight:700;">${totalTasks}</td>
             </tr>
             <tr style="background:#eff6ff;">
               <td style="padding:10px 14px;font-weight:600;">Completed This Week</td>

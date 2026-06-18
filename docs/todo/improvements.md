@@ -38,7 +38,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~Medium~~ | ~~Add pagination to comments on task show page — currently loads all comments~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Refactor dashboard to use a single aggregation pipeline instead of 7 separate queries~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Extract repeated "assignable users" query in taskController into a shared helper — called 4+ times identically~~ ✅ Done 2026-06-18 |
-| Low | Refactor weekly report to use MongoDB aggregation instead of client-side JS filtering |
+| ~~Low~~ | ~~Refactor weekly report to use MongoDB aggregation instead of client-side JS filtering~~ ✅ Done 2026-06-18 |
 
 ---
 
