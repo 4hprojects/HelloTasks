@@ -6,7 +6,8 @@ const appSettingSchema = new mongoose.Schema({
   supportEmail: { type: String, default: '' },
   openRegistration: { type: Boolean, default: true },
   weeklyReportNote: { type: String, default: '' },
-  weeklyReportAutoSend: { type: Boolean, default: false }
+  weeklyReportAutoSend: { type: Boolean, default: false },
+  authRateLimitEnabled: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('AppSetting', appSettingSchema);

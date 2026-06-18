@@ -66,7 +66,7 @@ async function getSettings(req, res) {
 }
 
 async function postSettings(req, res) {
-  const { appName, supportEmail, openRegistration, weeklyReportNote, weeklyReportAutoSend } = req.body;
+  const { appName, supportEmail, openRegistration, weeklyReportNote, weeklyReportAutoSend, authRateLimitEnabled } = req.body;
 
   await AppSetting.findByIdAndUpdate(
     'app',
@@ -75,7 +75,8 @@ async function postSettings(req, res) {
       supportEmail: supportEmail?.trim() || '',
       openRegistration: openRegistration === 'on',
       weeklyReportNote: weeklyReportNote?.trim() || '',
-      weeklyReportAutoSend: weeklyReportAutoSend === 'on'
+      weeklyReportAutoSend: weeklyReportAutoSend === 'on',
+      authRateLimitEnabled: authRateLimitEnabled === 'on'
     },
     { upsert: true, new: true }
   );

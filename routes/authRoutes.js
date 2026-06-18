@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
+const AppSetting = require('../models/AppSetting');
 const {
   getRegister, postRegister,
   getLogin, postLogin, logout,
@@ -17,16 +18,22 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
+async function conditionalAuthLimit(req, res, next) {
+  const settings = await AppSetting.findById('app').lean();
+  if (!settings || !settings.authRateLimitEnabled) return next();
+  return authLimiter(req, res, next);
+}
+
 router.get('/register', getRegister);
-router.post('/register', authLimiter, postRegister);
+router.post('/register', conditionalAuthLimit, postRegister);
 router.get('/login', getLogin);
-router.post('/login', authLimiter, postLogin);
+router.post('/login', conditionalAuthLimit, postLogin);
 router.get('/logout', logout);
 router.get('/forgot-password', getForgotPassword);
-router.post('/forgot-password', authLimiter, postForgotPassword);
+router.post('/forgot-password', conditionalAuthLimit, postForgotPassword);
 router.get('/reset-password/:token', getResetPassword);
-router.post('/reset-password/:token', authLimiter, postResetPassword);
+router.post('/reset-password/:token', conditionalAuthLimit, postResetPassword);
 router.get('/accept-invite/:token', getAcceptInvite);
-router.post('/accept-invite/:token', authLimiter, postAcceptInvite);
+router.post('/accept-invite/:token', conditionalAuthLimit, postAcceptInvite);
 
 module.exports = router;
