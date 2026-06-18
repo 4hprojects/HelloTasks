@@ -7,6 +7,7 @@ if (missing.length) {
   process.exit(1);
 }
 
+const crypto = require('crypto');
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -24,7 +25,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(morgan(process.env.APP_ENV === 'production' ? 'combined' : 'dev'));
+
+app.use((req, res, next) => {
+  req.id = crypto.randomUUID().slice(0, 8);
+  res.setHeader('X-Request-Id', req.id);
+  next();
+});
+
+morgan.token('id', req => req.id);
+const morganFormat = process.env.APP_ENV === 'production'
+  ? ':id :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
+  : ':id :method :url :status :response-time ms';
+app.use(morgan(morganFormat));
 
 if (process.env.APP_ENV === 'production') {
   app.use((req, res, next) => {

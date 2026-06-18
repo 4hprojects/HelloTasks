@@ -117,7 +117,7 @@ Full codebase audit completed 2026-06-18. Items are grouped by area and ranked w
 | ~~Medium~~ | ~~Add cascade delete hooks: deleting a project should clean up its tasks, comments, files, and notifications~~ ✅ Done 2026-06-18 |
 | ~~Medium~~ | ~~Validate that task assignee is a member of the project before saving~~ ✅ Done 2026-06-18 |
 | ~~Low~~ | ~~Replace magic numbers with named constants: 72h invite expiry, cron time, remember-me, password reset~~ ✅ Done 2026-06-18 |
-| Low | Add request correlation IDs to log entries for tracing errors in production |
+| ~~Low~~ | ~~Add request correlation IDs to log entries for tracing errors in production~~ ✅ Done 2026-06-18 |
 
 ---
 
