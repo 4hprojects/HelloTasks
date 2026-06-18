@@ -1,4 +1,5 @@
 const cron = require('node-cron');
+const { DUE_DATE_REMINDER_CRON } = require('../utils/constants');
 const Task = require('../models/Task');
 const { sendEmail } = require('../services/emailService');
 
@@ -9,8 +10,7 @@ function reminderEmailHtml(assigneeName, taskTitle, projectName, dueDate, taskPa
 }
 
 function startDueDateReminder() {
-  // Run daily at 08:00 server time
-  cron.schedule('0 8 * * *', async () => {
+  cron.schedule(DUE_DATE_REMINDER_CRON, async () => {
     console.log('[DueDateReminder] Running…');
     try {
       const now = new Date();

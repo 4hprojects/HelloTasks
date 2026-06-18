@@ -5,6 +5,7 @@ const { sendEmail } = require('../services/emailService');
 const { accountActivatedEmail, systemInviteEmail } = require('../services/emailTemplates');
 const { audit } = require('../utils/audit');
 const { ROLE_LABELS: ROLE_LABELS_MAP } = require('../utils/roles');
+const { INVITE_EXPIRY_MS } = require('../utils/constants');
 
 // Labels for every valid globalRole value (legacy + canonical)
 const ROLE_LABELS = {
@@ -135,7 +136,7 @@ async function postInviteUser(req, res) {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours
+    const expires = new Date(Date.now() + INVITE_EXPIRY_MS);
 
     if (user) {
       // Re-invite existing pending/suspended user

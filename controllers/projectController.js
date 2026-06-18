@@ -12,6 +12,7 @@ const { sendEmail } = require('../services/emailService');
 const { projectInviteEmail } = require('../services/emailTemplates');
 const { audit } = require('../utils/audit');
 const { canManage: roleCanManage, normalizeRole, isSystemAdmin, MANAGER_ROLES, ALL_PROJECT_ROLES } = require('../utils/roles');
+const { INVITE_EXPIRY_MS } = require('../utils/constants');
 
 async function uniqueSlug(base, excludeId = null) {
   let slug = base;
@@ -331,7 +332,7 @@ async function inviteMember(req, res) {
 
   // New or pending user — generate invite token
   const token = crypto.randomBytes(32).toString('hex');
-  const expires = new Date(Date.now() + 72 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + INVITE_EXPIRY_MS);
 
   if (targetUser) {
     targetUser.fullName = cleanName;

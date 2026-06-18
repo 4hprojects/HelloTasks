@@ -5,6 +5,7 @@ const AppSetting = require('../models/AppSetting');
 const { sendEmail } = require('../services/emailService');
 const { passwordResetEmail } = require('../services/emailTemplates');
 const { verifyTurnstile } = require('../utils/turnstile');
+const { REMEMBER_ME_MS, PASSWORD_RESET_EXPIRY_MS } = require('../utils/constants');
 
 async function getRegister(req, res) {
   res.render('auth/register', { title: 'Create Account' });
@@ -94,7 +95,7 @@ async function postLogin(req, res) {
 
     req.session.userId = user._id.toString();
     if (req.body.rememberMe === 'on') {
-      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+      req.session.cookie.maxAge = REMEMBER_ME_MS;
     } else {
       req.session.cookie.expires = false;
     }
@@ -135,7 +136,7 @@ async function postForgotPassword(req, res) {
 
     const token = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = token;
-    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS);
     await user.save();
 
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
