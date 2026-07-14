@@ -90,6 +90,7 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
+app.use('/qr', require('./routes/qrRoutes'));
 app.use('/', require('./routes/authRoutes'));
 app.use('/dashboard', require('./routes/dashboardRoutes'));
 app.use('/notifications', require('./routes/notificationRoutes'));

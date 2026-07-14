@@ -1,0 +1,53 @@
+<div class="qr-shell">
+  <header class="qr-header">
+    <a class="qr-brand" href="/qr">HelloTasks <span>QR Creator</span></a>
+    <nav aria-label="QR Creator"><a href="/qr/help">Help &amp; scanning tips</a><% if (!user) { %><a href="/login">Sign in</a><% } %></nav>
+  </header>
+
+  <main class="qr-page">
+    <div class="qr-intro"><p class="qr-kicker">Private by design</p><h1>Create a QR code</h1><p>Your content stays in this browser and is never uploaded or stored.</p></div>
+    <div class="qr-workspace">
+      <section class="qr-card qr-editor" aria-labelledby="content-heading">
+        <h2 id="content-heading">1. Choose the content</h2>
+        <div class="qr-types" role="radiogroup" aria-label="QR type">
+          <% [['url','Website'],['text','Text'],['email','Email'],['phone','Phone'],['sms','SMS'],['wifi','Wi-Fi'],['vcard','Contact'],['location','Location'],['event','Event']].forEach(function(item, i) { %>
+            <button type="button" class="qr-type <%= i === 0 ? 'is-active' : '' %>" data-type="<%= item[0] %>" role="radio" aria-checked="<%= i === 0 %>"><%= item[1] %></button>
+          <% }) %>
+        </div>
+
+        <div id="qr-error-summary" class="qr-alert qr-alert--error" role="alert" tabindex="-1" hidden></div>
+        <form id="qr-form" novalidate>
+          <div class="qr-form-panel" data-panel="url"><label>Website URL <input class="form-input" name="url" type="text" inputmode="url" placeholder="hellotasks.online" required></label><label>Filename label <span>(optional)</span><input class="form-input" name="label" maxlength="80"></label></div>
+          <div class="qr-form-panel" data-panel="text" hidden><label>Text <textarea class="form-textarea" name="text" maxlength="1500" required></textarea></label><label>Filename title <span>(optional)</span><input class="form-input" name="titleLabel" maxlength="80"></label></div>
+          <div class="qr-form-panel" data-panel="email" hidden><label>Recipient email <input class="form-input" name="email" type="email" required></label><label>Subject <span>(optional)</span><input class="form-input" name="subject" maxlength="150"></label><label>Message <span>(optional)</span><textarea class="form-textarea" name="message" maxlength="2000"></textarea></label></div>
+          <div class="qr-form-panel" data-panel="phone" hidden><label>Phone number <input class="form-input" name="phone" type="tel" required></label></div>
+          <div class="qr-form-panel" data-panel="sms" hidden><label>Phone number <input class="form-input" name="phone" type="tel" required></label><label>Message <span>(optional)</span><textarea class="form-textarea" name="message" maxlength="500"></textarea></label></div>
+          <div class="qr-form-panel" data-panel="wifi" hidden><label>Network name <input class="form-input" name="ssid" maxlength="64" required></label><label>Security <select class="form-select" name="security"><option>WPA</option><option>WPA2</option><option>WEP</option><option>None</option></select></label><label>Password <input class="form-input" name="password" type="password" maxlength="128" autocomplete="new-password"></label><label class="qr-check"><input name="hidden" type="checkbox"> Hidden network</label></div>
+          <div class="qr-form-panel qr-grid" data-panel="vcard" hidden><label>First name <input class="form-input" name="firstName"></label><label>Last name <input class="form-input" name="lastName"></label><label>Organization <input class="form-input" name="organization"></label><label>Position <input class="form-input" name="position"></label><label>Phone <input class="form-input" name="phone" type="tel"></label><label>Email <input class="form-input" name="email" type="email"></label><label>Website <input class="form-input" name="website" inputmode="url"></label><label class="qr-span">Address <textarea class="form-textarea" name="address"></textarea></label></div>
+          <div class="qr-form-panel qr-grid" data-panel="location" hidden><label>Latitude <input class="form-input" name="latitude" type="number" step="any" min="-90" max="90" required></label><label>Longitude <input class="form-input" name="longitude" type="number" step="any" min="-180" max="180" required></label></div>
+          <div class="qr-form-panel qr-grid" data-panel="event" hidden><label class="qr-span">Event title <input class="form-input" name="title" required></label><label>Starts <input class="form-input" name="start" type="datetime-local" required></label><label>Ends <input class="form-input" name="end" type="datetime-local" required></label><label class="qr-span">Location <input class="form-input" name="eventLocation" maxlength="500"></label><label class="qr-span">Description <textarea class="form-textarea" name="description" maxlength="1000"></textarea></label></div>
+        </form>
+
+        <details class="qr-options"><summary>2. Customize appearance</summary><div class="qr-options-grid">
+          <label>Foreground <input name="foregroundColor" type="color" value="#000000"></label><label>Background <input name="backgroundColor" type="color" value="#ffffff"></label>
+          <label>Download size <select class="form-select" name="size"><option>300</option><option>500</option><option selected>800</option><option>1200</option></select></label>
+          <label>Quiet zone <select class="form-select" name="margin"><option>2</option><option selected>4</option><option>6</option><option>8</option></select></label>
+          <label>Error correction <select class="form-select" name="errorCorrectionLevel"><option>L</option><option>M</option><option>Q</option><option selected>H</option></select></label>
+          <label>Dot style <select class="form-select" name="dotStyle"><option>square</option><option>rounded</option><option>dots</option></select></label>
+          <label>Corner style <select class="form-select" name="cornerStyle"><option>square</option><option value="extra-rounded">rounded</option><option>dot</option></select></label>
+          <label class="qr-span">Center logo <span>(PNG, JPEG, or WebP; max 2 MB)</span><input class="form-input" name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <label>Logo size <input name="logoSize" type="range" min="10" max="30" value="20"><output id="logo-size-output">20%</output></label><button type="button" class="btn btn--ghost btn--sm" id="remove-logo" hidden>Remove logo</button>
+        </div><div id="qr-warning" class="qr-alert qr-alert--warning" aria-live="polite" hidden></div></details>
+        <div class="qr-actions"><button class="btn btn--primary btn--lg" type="button" id="generate-qr">Generate QR code</button><button class="btn btn--ghost" type="button" id="reset-qr">Reset</button></div>
+      </section>
+
+      <aside class="qr-card qr-preview-card" aria-labelledby="preview-heading">
+        <h2 id="preview-heading">Preview</h2><div id="qr-status" class="sr-only" aria-live="polite"></div>
+        <div id="qr-preview" class="qr-preview"><p>Your QR code preview will appear here.</p></div>
+        <div class="qr-downloads"><button class="btn btn--accent" id="download-png" disabled>Download PNG</button><button class="btn btn--outline" id="download-svg" disabled>Download SVG</button></div>
+        <details class="qr-payload"><summary>View encoded content</summary><p class="qr-sensitive" hidden>Warning: this content includes the Wi-Fi password.</p><pre id="qr-payload"></pre><button class="btn btn--ghost btn--sm" id="copy-payload">Copy content</button></details>
+        <p class="qr-tip">Scan the downloaded code on more than one device before printing it.</p>
+      </aside>
+    </div>
+  </main>
+</div>

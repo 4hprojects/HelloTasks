@@ -12,8 +12,11 @@
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/tasks.css" />
   <link rel="stylesheet" href="/css/responsive.css" />
+  <% if (typeof pageStyles !== 'undefined') { pageStyles.forEach(function(href) { %>
+  <link rel="stylesheet" href="<%= href %>" />
+  <% }); } %>
 </head>
-<body class="<%= typeof user !== 'undefined' && user ? 'app-layout' : 'auth-layout' %>">
+<body class="<%= typeof user !== 'undefined' && user ? 'app-layout' : (typeof pageClass !== 'undefined' ? pageClass : 'auth-layout') %>">
 
 <% if (typeof user !== 'undefined' && user) { %>
   <%- include('../partials/sidebar') %>
@@ -32,6 +35,9 @@
 <% } %>
 
 <script src="/js/main.js"></script>
+<% if (typeof pageScripts !== 'undefined') { pageScripts.forEach(function(src) { %>
+<script src="<%= src %>"></script>
+<% }); } %>
 
 <% if (typeof user !== 'undefined' && user) { %>
 <div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true">
