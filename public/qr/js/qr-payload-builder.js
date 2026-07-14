@@ -13,6 +13,33 @@
   const escapeWifi = input => input.replace(/([\\;,:"])/g, '\\$1');
   const escapeVcard = input => input.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([;,])/g, '\\$1');
   const escapeIcal = input => escapeVcard(input);
+  const QR_BYTE_CAPACITY = Object.freeze({ L: 2953, M: 2331, Q: 1663, H: 1273 });
+
+  function utf8ByteLength(input) {
+    const text = String(input || '');
+    if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(text).length;
+    return Buffer.byteLength(text, 'utf8');
+  }
+
+  function validatePayloadCapacity(payload, level) {
+    const normalizedLevel = Object.hasOwn(QR_BYTE_CAPACITY, level) ? level : 'H';
+    const bytes = utf8ByteLength(payload);
+    return bytes <= QR_BYTE_CAPACITY[normalizedLevel]
+      ? { success: true, bytes, capacity: QR_BYTE_CAPACITY[normalizedLevel], errors: [] }
+      : { success: false, bytes, capacity: QR_BYTE_CAPACITY[normalizedLevel], errors: [{ field: 'content', message: `Content is too large for ${normalizedLevel} error correction. Shorten it or choose a lower correction level.` }] };
+  }
+
+  function sanitizeFilename(input) {
+    return String(input || '').trim().toLowerCase().normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '').slice(0, 60);
+  }
+
+  function buildFilename(input, extension) {
+    const clean = sanitizeFilename(input);
+    const ext = String(extension || '').toLowerCase() === 'svg' ? 'svg' : 'png';
+    return `hellotasks-qr${clean ? `-${clean}` : ''}.${ext}`;
+  }
 
   function normalizeUrl(input) {
     let raw = String(input || '').trim();
@@ -106,5 +133,5 @@
   }
   const builders = { url: buildUrlPayload, text: buildTextPayload, email: buildEmailPayload, phone: buildPhonePayload, sms: buildSmsPayload, wifi: buildWifiPayload, vcard: buildVCardPayload, location: buildLocationPayload, event: buildCalendarPayload };
   function buildQrPayload(type, data) { return builders[type] ? builders[type]({ ...data }) : fail('type', 'Choose a supported QR type.'); }
-  return { buildQrPayload, buildUrlPayload, buildTextPayload, buildEmailPayload, buildPhonePayload, buildSmsPayload, buildWifiPayload, buildVCardPayload, buildLocationPayload, buildCalendarPayload, normalizeUrl };
+  return { buildQrPayload, buildUrlPayload, buildTextPayload, buildEmailPayload, buildPhonePayload, buildSmsPayload, buildWifiPayload, buildVCardPayload, buildLocationPayload, buildCalendarPayload, normalizeUrl, utf8ByteLength, validatePayloadCapacity, sanitizeFilename, buildFilename, QR_BYTE_CAPACITY };
 }));

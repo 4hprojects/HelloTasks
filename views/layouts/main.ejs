@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <% if (typeof pwaEnabled !== 'undefined' && pwaEnabled) { %>
+  <meta name="theme-color" content="#1E40AF" />
+  <meta name="description" content="Create private, customizable QR codes in your browser with HelloTasks." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="QR Creator" />
+  <link rel="manifest" href="/qr/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/qr/images/icon-180.png" />
+  <% } %>
   <title><%= typeof title !== 'undefined' ? title : 'HelloTasks' %> — HelloTasks</title>
   <link rel="stylesheet" href="/css/base.css" />
   <link rel="stylesheet" href="/css/theme.css" />
@@ -27,6 +37,9 @@
       <%- body %>
     </div>
   </div>
+<% } else if (typeof pageClass !== 'undefined' && pageClass === 'qr-public-layout') { %>
+  <%- include('../partials/flash-messages') %>
+  <%- body %>
 <% } else { %>
   <div class="auth-wrapper">
     <%- include('../partials/flash-messages') %>
